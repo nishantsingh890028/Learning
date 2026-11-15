@@ -320,11 +320,11 @@
     const view = () => {
       K.render(tx(act.title), `
         <div class="poem-card"><div class="poem-emoji">${act.emoji || '🎵'}</div>
-          <div class="poem-lines">${lines.map((l, k) => `<div class="pl" data-l="${k}">${esc(l)}${act.roman && act.roman[k] ? `<small>${esc(act.roman[k])}</small>` : ''}</div>`).join('')}</div>
+          <div class="poem-lines">${lines.map((l, k) => `<div class="pl" data-l="${k}">${esc(l)}${act.roman && act.roman[k] ? `<small>${esc(act.roman[k])}</small>` : ''}<i class="pbar"></i></div>`).join('')}</div>
           ${act.meaning ? `<div class="meaning" style="margin-top:8px">${esc(tx(act.meaning))}</div>` : ''}
         </div>
         <div class="turn hidden" data-turn><div class="mic">🎤</div><div data-turn-text>${t('Your turn! Say it aloud', 'अब तुम्हारी बारी! ज़ोर से बोलो')}</div><div class="ring"><span data-ring></span></div><button class="btn green" data-said>✔ ${t('I said it!', 'मैंने बोल दिया!')}</button></div>
-        <div class="nav"><button class="btn orange" data-sing>🎵 ${t('Sing', 'गाओ')}</button><button class="btn green" data-repeat>🗣️ ${t('Your turn', 'तुम्हारी बारी')}</button></div>
+        <div class="nav"><button class="btn orange" data-sing>🎵 ${t('Sing along', 'साथ में गाओ')}</button><button class="btn green" data-repeat>🗣️ ${t('Learn line by line', 'लाइन-दर-लाइन सीखो')}</button></div>
         ${act.credit ? `<p class="credit">${esc(act.credit)}</p>` : ''}`, { name: 'poem', back });
       q('[data-sing]').onclick = () => { K.sfx.tap(); sing(); };
       q('[data-repeat]').onclick = () => { K.sfx.tap(); repeat(); };
@@ -336,45 +336,70 @@
       a.onended = () => resolve(true); a.onerror = () => resolve(false);
       a.play().catch(() => resolve(false));
     });
+    // ---- v3.5: songs keep their rhythm. Real melodies (act.melody) play note by note with karaoke lines;
+    //      rhymes are chanted ON a steady beat, one line per bar, like a teacher leading the class.
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const bar = (k, secs) => { const el = q(`[data-l="${k}"] .pbar`); if (!el) { return; } el.style.transition = 'none'; el.style.width = '0%'; requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transition = `width ${secs}s linear`; el.style.width = '100%'; })); };
+    const busy = (on) => qa('[data-sing],[data-repeat]').forEach((b) => { b.disabled = on; });
+    const lineSecs = (k) => (act.melody[k] || []).reduce((s2, [, u]) => s2 + u, 0) * (act.unit || 0.26);
+    const fitRate = (line, secs) => Math.max(0.78, Math.min(1.3, (K.syllables(line) * (hiP ? 0.19 : 0.22)) / Math.max(0.8, secs)));
+    async function melodySong(my, learn) {
+      await say(learn ? t('Listen to me first, then sing the tune with the music.', 'पहले मुझे सुनो, फिर संगीत के साथ धुन गाओ।') : t('Stand straight and still. Let us sing together!', 'सीधे और स्थिर खड़े हो जाओ। चलो साथ में गाएँ!'), { silentWait: true });
+      if (K.rid !== my) { return; }
+      K.drone(true, act.root || 'C3'); await wait(900);
+      for (let k = 0; k < lines.length; k++) {
+        if (K.rid !== my) { break; }
+        hl(k);
+        if (learn) { await say(lines[k], { lang, rate: 0.82, silentWait: true }); if (K.rid !== my) { break; } await wait(250); }
+        bar(k, lineSecs(k)); await K.playNotes(act.melody[k], act.unit || 0.26);
+        if (learn) { await wait(500); }
+      }
+      K.drone(false);
+    }
+    async function chant(my, echo) {
+      const bpm = act.bpm ? Math.max(84, Math.min(108, act.bpm)) : 96;
+      K.beat.start(bpm, hiP ? 'desi' : 'rhyme');
+      const bs = K.beat.barSec();
+      await K.beat.nextBar(); await K.beat.nextBar();            // one bar of count-in
+      const turn = q('[data-turn]');
+      for (let k = 0; k < lines.length; k++) {
+        if (K.rid !== my) { break; }
+        const bars = K.syllables(lines[k]) > 10 ? 2 : 1;
+        hl(k); bar(k, bars * bs); if (turn) { turn.classList.add('hidden'); }
+        await say(lines[k], { lang, rate: fitRate(lines[k], bars * bs * 0.86), pitch: 1.12, noPause: true, silentWait: true });
+        if (K.rid !== my) { break; }
+        await K.beat.nextBar();
+        if (echo) {                                               // child repeats the line over the next bar(s)
+          if (turn) { turn.classList.remove('hidden'); const ring = q('[data-ring]'); ring.style.transition = 'none'; ring.style.width = '0%'; requestAnimationFrame(() => { ring.style.transition = `width ${bars * bs}s linear`; ring.style.width = '100%'; }); }
+          bar(k, bars * bs);
+          for (let n = 0; n < bars; n++) { await K.beat.nextBar(); }
+          if (!K.beat.on) { await wait(bars * 2200); }
+        }
+      }
+      if (turn) { turn.classList.add('hidden'); }
+      K.beat.stop();
+    }
     async function sing() {
       if (mode !== 'idle') { return; }
-      mode = 'sing'; const my = K.current;
-      if (await playAudioFile()) { mode = 'idle'; sang = true; return; }
-      K.music(K.TUNES[act.tune || 'gentle'], act.bpm || 92);
-      for (let k = 0; k < lines.length; k++) {
-        if (K.current !== my) { return; }
-        hl(k);
-        await say(lines[k], { lang, rate: 0.78, pitch: 1.25, silentWait: true });
-        await new Promise((r) => setTimeout(r, 250));
+      mode = 'sing'; const my = K.rid; busy(true);
+      if (!(await playAudioFile())) {
+        if (act.melody) { await melodySong(my, false); } else { await chant(my, false); }
       }
-      K.stopMusic(); hl(-1); mode = 'idle'; sang = true;
-      if (K.current === my) { say(t('Now it is your turn!', 'अब तुम्हारी बारी!')); q('[data-repeat]').classList.add('pulse'); }
+      if (K.rid !== my) { return; }
+      hl(-1); mode = 'idle'; sang = true; busy(false);
+      say(t('Lovely! Now learn it line by line with me.', 'बहुत सुंदर! अब मेरे साथ लाइन-दर-लाइन सीखो।')); q('[data-repeat]').classList.add('pulse');
     }
     async function repeat() {
       if (mode !== 'idle') { return; }
-      mode = 'repeat'; const my = K.current;
-      const turn = q('[data-turn]');
-      for (let k = 0; k < lines.length; k++) {
-        if (K.current !== my) { return; }
-        hl(k); turn.classList.add('hidden');
-        await say(lines[k], { lang, rate: 0.8, silentWait: true });
-        if (K.current !== my) { return; }
-        turn.classList.remove('hidden');
-        await new Promise((res) => {
-          const secs = Math.min(9, 2.5 + lines[k].length / 9);
-          const ring = q('[data-ring]'); ring.style.transition = 'none'; ring.style.width = '0%';
-          requestAnimationFrame(() => { ring.style.transition = `width ${secs}s linear`; ring.style.width = '100%'; });
-          const timer = setTimeout(res, secs * 1000);
-          q('[data-said]').onclick = () => { K.sfx.pop(); clearTimeout(timer); res(); };
-        });
-        K.sfx.pop();
-      }
-      turn.classList.add('hidden'); hl(-1); mode = 'idle';
+      mode = 'repeat'; const my = K.rid; busy(true);
+      if (act.melody) { await melodySong(my, true); } else { await chant(my, true); }
+      if (K.rid !== my) { return; }
+      hl(-1); mode = 'idle'; busy(false);
       stars = sang ? 4 : 3; K.addStars(stars);
       K.finish(act, stars, back);
     }
     view();
-    setTimeout(() => { if (K.current === 'poem') { say(t('Tap Sing to listen, then say it with me!', 'गाओ दबाओ, सुनो, फिर मेरे साथ बोलो!')); } }, 300);
+    setTimeout(() => { if (K.current === 'poem') { say(act.melody ? t('This is our National Anthem. Tap Sing along to hear the tune.', 'यह हमारा राष्ट्रगान है। धुन सुनने के लिए साथ में गाओ दबाओ।') : t('Tap Sing along to hear the rhyme on the beat, then learn it with me!', 'ताल पर कविता सुनने के लिए साथ में गाओ दबाओ, फिर मेरे साथ सीखो!')); } }, 300);
   }
 
   // ================================================================ 8. STORY (pages + moral + questions)

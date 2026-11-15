@@ -40,7 +40,24 @@
     lines: ['जन-गण-मन अधिनायक जय हे', 'भारत-भाग्य-विधाता!', 'पंजाब-सिंधु-गुजरात-मराठा', 'द्राविड़-उत्कल-बंग', 'विंध्य-हिमाचल-यमुना-गंगा', 'उच्छल-जलधि-तरंग', 'तव शुभ नामे जागे,', 'तव शुभ आशिष मागे,', 'गाहे तव जय-गाथा।', 'जन-गण-मंगलदायक जय हे', 'भारत-भाग्य-विधाता!', 'जय हे, जय हे, जय हे,', 'जय जय जय, जय हे।'],
     roman: ['Jana-gana-mana adhinayaka jaya he', 'Bharata-bhagya-vidhata!', 'Punjaba-Sindhu-Gujarata-Maratha', 'Dravida-Utkala-Banga', 'Vindhya-Himachala-Yamuna-Ganga', 'Uchchhala-jaladhi-taranga', 'Tava shubha name jage,', 'Tava shubha ashisha mage,', 'Gahe tava jaya-gatha.', 'Jana-gana-mangala-dayaka jaya he', 'Bharata-bhagya-vidhata!', 'Jaya he, jaya he, jaya he,', 'Jaya jaya jaya, jaya he.'],
     meaning: T('Stand straight and still while it is sung. The full anthem takes about 52 seconds.', 'राष्ट्रगान के समय सीधे और स्थिर खड़े रहो। पूरा राष्ट्रगान लगभग 52 सेकंड का है।'),
-    credit: 'Rabindranath Tagore (1911) – public domain', skills: ['music', 'memory', 'values'],
+    credit: 'Words & music: Rabindranath Tagore (1911) – public domain. Melody in C (Sa = C).', skills: ['music', 'memory', 'values'],
+    // the anthem tune, one phrase per line: [note, beats]; ≈52 seconds at 0.26 s per beat, like the official rendition
+    unit: 0.26, root: 'C3',
+    melody: [
+      [['C4', 1], ['D4', 1], ['E4', 1], ['E4', 1], ['E4', 1], ['E4', 1], ['E4', 1], ['E4', 1], ['E4', 2], ['E4', 1], ['E4', 1], ['D4', 1], ['E4', 1], ['F4', 3]],
+      [['E4', 2], ['E4', 1], ['E4', 1], ['D4', 2], ['D4', 1], ['D4', 1], ['B3', 1], ['D4', 1], ['C4', 4]],
+      [['C4', 2], ['G4', 2], ['G4', 1], ['G4', 2], ['G4', 1], ['G4', 1], ['G4', 1], ['G4', 2], ['G4', 1], ['G4', 1], ['F#4', 1], ['A4', 1], ['G4', 3]],
+      [['F4', 2], ['F4', 1], ['F4', 1], ['E4', 2], ['E4', 1], ['E4', 1], ['D4', 1], ['F4', 1], ['E4', 4]],
+      [['E4', 2], ['E4', 2], ['E4', 1], ['E4', 2], ['E4', 1], ['D4', 2], ['G4', 1], ['G4', 1], ['G4', 2], ['F4', 2], ['F4', 4]],
+      [['E4', 2], ['E4', 1], ['E4', 1], ['D4', 1], ['D4', 1], ['D4', 1], ['D4', 1], ['B3', 1], ['D4', 1], ['C4', 4]],
+      [['C4', 1], ['D4', 1], ['E4', 2], ['E4', 1], ['E4', 2], ['E4', 1], ['D4', 1], ['E4', 1], ['F4', 3]],
+      [['E4', 1], ['F4', 1], ['G4', 2], ['G4', 1], ['G4', 2], ['F4', 1], ['E4', 1], ['D4', 1], ['F4', 1], ['E4', 3]],
+      [['E4', 2], ['E4', 1], ['D4', 2], ['D4', 1], ['D4', 1], ['D4', 1], ['B3', 1], ['D4', 1], ['C4', 4]],
+      [['G4', 1], ['G4', 1], ['G4', 1], ['G4', 1], ['G4', 2], ['G4', 1], ['F#4', 1], ['G4', 1], ['G4', 1], ['G4', 1], ['F#4', 1], ['A4', 1], ['G4', 3]],
+      [['F4', 2], ['F4', 1], ['F4', 1], ['E4', 2], ['E4', 1], ['F4', 1], ['D4', 1], ['F4', 1], ['E4', 4]],
+      [['C5', 1], ['B4', 1], ['C5', 3], ['B4', 1], ['A4', 1], ['B4', 3], ['A4', 1], ['G4', 1], ['A4', 4]],
+      [['C4', 1], ['C4', 1], ['D4', 2], ['D4', 1], ['E4', 2], ['E4', 1], ['D4', 1], ['E4', 1], ['F4', 6]],
+    ],
   });
   // ---- About the anthem
   FACTS('in-anthem-about', 'india', ALL, ['About our National Anthem', 'हमारे राष्ट्रगान के बारे में'], '🎼', [
@@ -83,7 +100,7 @@
   ], ['Stand still, stay quiet, sing with pride.', 'स्थिर खड़े रहो, चुप रहो, गर्व से गाओ।'], { skills: ['values', 'life'] }));
   // ---- National Song
   add('in-vande', 'india', BIG, {
-    type: 'poem', title: T('National Song: Vande Mataram', 'राष्ट्रगीत: वंदे मातरम्'), emoji: '🌸', tune: 'gentle', bpm: 76,
+    type: 'poem', title: T('National Song: Vande Mataram', 'राष्ट्रगीत: वंदे मातरम्'), emoji: '🌸', tune: 'gentle', bpm: 84,
     lines: ['वंदे मातरम्!', 'सुजलाम् सुफलाम् मलयज-शीतलाम्', 'शस्य-श्यामलाम् मातरम्! वंदे मातरम्!', 'शुभ्र-ज्योत्स्ना-पुलकित-यामिनीम्', 'फुल्ल-कुसुमित-द्रुमदल-शोभिनीम्', 'सुहासिनीम् सुमधुर-भाषिणीम्', 'सुखदाम् वरदाम् मातरम्! वंदे मातरम्!'],
     roman: ['Vande Mataram!', 'Sujalam suphalam malayaja-shitalam', 'Shasya-shyamalam Mataram! Vande Mataram!', 'Shubhra-jyotsna-pulakita-yaminim', 'Phulla-kusumita-drumadala-shobhinim', 'Suhasinim sumadhura-bhashinim', 'Sukhadam varadam Mataram! Vande Mataram!'],
     meaning: T('“I bow to you, Mother India – full of rivers and fruits, cool breezes and green fields, moonlit nights and flowering trees; always smiling, speaking sweetly, giving joy and blessings.” Written by Bankim Chandra Chattopadhyay.', '“हे भारत माँ, तुम्हें प्रणाम – तुम नदियों और फलों से भरी, ठंडी हवा और हरे खेतों वाली, चाँदनी रातों और फूलों से लदे पेड़ों वाली; सदा मुस्कुराती, मीठा बोलती, सुख और वरदान देती हो।” रचना: बंकिम चंद्र चट्टोपाध्याय।'),

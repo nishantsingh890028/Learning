@@ -9,7 +9,7 @@ window.K = (() => {
     entitlement: 'full',
     priceFallback: '₹299',
     demoUnlock: true,                                         // browser preview only; never unlocks in the Android app
-    version: '3.4.1',
+    version: '3.5.0',
     // Testing: everything unlocked. Set to false before publishing so the Full Pack purchase works.
     unlockAll: true,
     dailyCount: 5,
@@ -97,7 +97,7 @@ window.K = (() => {
     play();
     if (loop) { musicTimer = setInterval(play, total * 1000); }
   };
-  K.stopMusic = () => { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } };
+  K.stopMusic = () => { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } if (K.beat) { K.beat.stop(); } if (K.stopNotes) { K.stopNotes(); } if (K.drone) { K.drone(false); } };
   K.TUNES = {
     // traditional public-domain melody ("Ah vous dirai-je, maman")
     twinkle: [['C4', 1], ['C4', 1], ['G4', 1], ['G4', 1], ['A4', 1], ['A4', 1], ['G4', 2], ['F4', 1], ['F4', 1], ['E4', 1], ['E4', 1], ['D4', 1], ['D4', 1], ['C4', 2]],
@@ -154,23 +154,37 @@ window.K = (() => {
   };
 
   // pick the nicest phone voice per language (prefers neural / natural / female voices)
-  const GOOD = /(neural|natural|enhanced|premium|online|wavenet|swara|kalpana|heera|neerja|aarti|ananya|kavya|lekha|veena|female|-x-hi[ac]-|-x-ena-|-x-enc-|google)/i;
-  const BAD = /(male|madhur|hemant|ravi|prabhat|-x-hid-|-x-hie-|-x-end-|-x-ene-)/i;
+  // A warm female "teacher" voice is preferred. (Bug fixed in v3.5: the old "male" check also matched "female".)
+  const FEMALE = /(female|swara|kalpana|heera|neerja|aarti|ananya|kavya|lekha|veena|aditi|raveena|kajal|priya|samantha|zira|-x-hi[ac]-|-x-ahp-|-x-cxx-)/i;
+  const MALE = /((^|[^e])male|madhur|hemant|ravi|prabhat|rishi|-x-hi[de]-|-x-ism-|-x-ene-)/i;
+  const QUALITY = /(neural|natural|enhanced|premium|wavenet|network|google)/i;
   const scoreVoice = (v, lang) => {
-    const l = (v.lang || '').replace('_', '-').toLowerCase();
+    const l = (v.lang || '').replace('_', '-').toLowerCase(); const n = v.name || v.voiceURI || '';
     let s = l === lang.toLowerCase() ? 10 : l.startsWith(lang.slice(0, 2)) ? 5 : -99;
-    if (GOOD.test(v.name || v.voiceURI || '')) { s += 3; } if (BAD.test(v.name || v.voiceURI || '')) { s -= 2; } if (v.localService === false) { s -= 1; }
+    if (FEMALE.test(n)) { s += 4; } if (MALE.test(n)) { s -= 4; } if (QUALITY.test(n)) { s += 1; } if (v.localService === false) { s -= 0.5; }
     return s;
   };
+  // a voice the parent picked in Grown-ups → Voice check wins
+  const picked = (lang) => ((K.state.voicePick || {})[lang.slice(0, 2)] || '');
   let nativeVoices = null;
   async function nativeVoice(tts, lang) {
     if (!nativeVoices) { try { nativeVoices = (await tts.getSupportedVoices()).voices || []; } catch { nativeVoices = []; } }
+    const want = picked(lang); if (want) { const i = nativeVoices.findIndex((v) => (v.name || v.voiceURI) === want); if (i >= 0) { return i; } }
     let best = -1; let bs = 0;
     nativeVoices.forEach((v, i) => { const s = scoreVoice(v, lang); if (s > bs) { bs = s; best = i; } });
     return best >= 0 ? best : undefined;
   }
   if (!!window.speechSynthesis) { try { speechSynthesis.getVoices(); speechSynthesis.addEventListener('voiceschanged', () => speechSynthesis.getVoices()); } catch { /* ignore */ } }
-  const webVoice = (lang) => { const vs = speechSynthesis.getVoices(); let best = null; let bs = 0; for (const v of vs) { if (badVoices.has(v.name)) { continue; } const s = scoreVoice(v, lang); if (s > bs) { bs = s; best = v; } } return best; };
+  const webVoice = (lang) => { const vs = speechSynthesis.getVoices(); const want = picked(lang); if (want) { const w = vs.find((v) => v.name === want && !badVoices.has(v.name)); if (w) { return w; } } let best = null; let bs = 0; for (const v of vs) { if (badVoices.has(v.name)) { continue; } const s = scoreVoice(v, lang); if (s > bs) { bs = s; best = v; } } return best; };
+
+  /** Voices for the parent's voice picker, best first: [{ name, label }] */
+  K.voiceList = async (lang) => {
+    const tts = K.plug('TextToSpeech'); let vs = [];
+    if (tts) { if (!nativeVoices) { try { nativeVoices = (await tts.getSupportedVoices()).voices || []; } catch { nativeVoices = []; } } vs = nativeVoices; }
+    else if (window.speechSynthesis) { vs = speechSynthesis.getVoices(); }
+    return vs.filter((v) => scoreVoice(v, lang) > 0).sort((a, b) => scoreVoice(b, lang) - scoreVoice(a, lang)).slice(0, 10)
+      .map((v) => { const n = v.name || v.voiceURI; return { name: n, label: `${FEMALE.test(n) ? '👩 ' : MALE.test(n) ? '👨 ' : '🗣️ '}${n}` }; });
+  };
 
   // ---------------------------------------------------------------- web speech helpers (with diagnostics)
   const badVoices = new Set();
@@ -248,7 +262,7 @@ window.K = (() => {
     if (tts) {
       tts.stop().catch(() => {}).then(async () => {
         const voice = await nativeVoice(tts, lang);
-        for (const ch of chunks) { if (my !== token) { break; } try { await tts.speak({ text: ch, lang, rate, pitch: opts.pitch || 1.05, volume: 1.0, voice }); } catch { break; } }
+        for (let ci = 0; ci < chunks.length; ci++) { if (my !== token) { break; } try { await tts.speak({ text: chunks[ci], lang, rate, pitch: opts.pitch || 1.05, volume: 1.0, voice }); } catch { break; } if (ci < chunks.length - 1 && !opts.noPause) { await new Promise((r) => setTimeout(r, 220)); } }
         finish();
       });
       return;
@@ -264,6 +278,7 @@ window.K = (() => {
           let r = await speakChunk(sy, ch, lang, rate, opts.pitch || 1.05, true);
           if (r === 'retry' && my === token) { r = await speakChunk(sy, ch, lang, rate, opts.pitch || 1.05, false); }
           if (r === 'blocked') { K.voiceNotice('blocked'); break; }
+          if (!opts.noPause && my === token) { await new Promise((res) => setTimeout(res, 220)); }
         }
         finish();
       }, gap);
@@ -402,7 +417,7 @@ window.K = (() => {
   window.addEventListener('resize', K.fit); window.addEventListener('orientationchange', () => setTimeout(K.fit, 150)); K.fit();
 
   K.render = (title, body, { name = 'screen', back = null, right = null, mascot = ['act', 'poem', 'story', 'trace'].includes(name) } = {}) => {
-    K.current = name;
+    K.current = name; K.rid = (K.rid || 0) + 1;
     K.stopMusic(); K.stopVoice();
     const c = K.child();
     const app = document.getElementById('app');

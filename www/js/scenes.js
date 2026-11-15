@@ -102,7 +102,7 @@
       else { const n = ground.length; style = `left:${n === 1 ? 50 : 18 + (gi++ * 64) / (n - 1)}%`; }
       return `<span class="${cls.join(' ')}" style="${style};animation-delay:${-k * 0.45}s">${e}</span>`;
     }).join('');
-    return `<div class="scene sk-${B.sky} gr-${B.ground}${opts.mini ? ' mini' : ''}" aria-hidden="true">
+    return `<div class="kscene sk-${B.sky} gr-${B.ground}${opts.mini ? ' mini' : ''}" aria-hidden="true">
       ${B.sun ? '<span class="z-sun">☀️</span>' : ''}${B.moon ? '<span class="z-moon">🌙</span><span class="z-stars">✨ · ⭐ · ✨ · ⭐</span>' : ''}${B.stars ? '<span class="z-stars">✨ · ⭐ · ✨ · ⭐ · ✨</span>' : ''}
       ${B.clouds || B.sky === 'day' ? '<span class="z-cloud z-c1">☁️</span><span class="z-cloud z-c2">☁️</span>' : ''}
       ${B.pillars ? '<span class="z-pillar z-l"></span><span class="z-pillar z-r"></span>' : ''}

@@ -1,4 +1,4 @@
-# Khel Khel Mein: Play & Learn (Android) – v3.4
+# Khel Khel Mein: Play & Learn (Android) – v3.5
 
 > **Testing mode is ON:** everything is unlocked (`unlockAll: true` in `www/js/core.js`). Set it to `false` before publishing so the Full Pack purchase works.
 
@@ -45,6 +45,8 @@ Golu the elephant teaches every lesson through games.
 - **Daily Journey:** 6 activities a day (about 20 minutes): language, syllabus maths, Maths Gym or Abacus, My World, a values lesson, and a poem, drawing, puzzle or story. It moves through the syllabus chapter by chapter.
 - **Voice:** soft studio neural voice, generated once and bundled with the app (see section 2). Until the voice files exist, the app uses the phone's best voice.
 - **Fits every screen (v3.4):** phones, tablets and laptops, portrait or landscape. Bigger screens scale the whole app up and get more columns; phones held sideways put pictures beside the text. On Android the app stays clear of the status bar and navigation bar.
+- **Songs keep their rhythm (v3.5):** the National Anthem plays its real melody (Tagore's 1911 tune, ≈52 s) on a soft harmonium with a tanpura drone, with karaoke lines; "Learn line by line" has the teacher say each line, then the tune plays it. Rhymes and poems are chanted ON a steady beat (one line per bar), and in learn mode the child repeats each line in the next bar.
+- **Teacher voice (v3.5):** female voices are preferred (a bug that marked female voices down is fixed), sentences get small natural pauses, and parents can pick the teacher's voice in Grown-ups → Settings → 🩺 Voice check. For a real studio teacher voice everywhere, generate the voice pack (section 2: Azure Swara / Neerja, both female).
 - **Parents:** a guide on first launch, a daily report with talk prompts, syllabus progress per subject, several children, a class picker, a play-time limit and a parent gate.
 
 ```

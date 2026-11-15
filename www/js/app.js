@@ -421,10 +421,23 @@
       <li>⚠️ ${t('Last error', 'आखिरी त्रुटि')}: ${esc(K.voiceDiag.lastError || t('none', 'कोई नहीं'))} · ${t('started', 'शुरू')} ${K.voiceDiag.started}</li></ul>
       <div class="row center wrap"><button class="btn" data-ten>🔊 English</button><button class="btn orange" data-thi>🔊 हिंदी</button></div>
       <p class="small" data-vres></p>
+      <div class="vpick"><h3>👩‍🏫 ${t('Choose the teacher’s voice', 'टीचर की आवाज़ चुनें')}</h3>
+        <label>English</label><div class="row"><select data-vp="en"><option value="">${t('Automatic (best female voice)', 'अपने-आप (सबसे अच्छी महिला आवाज़)')}</option></select><button class="round small" data-vt="en">▶</button></div>
+        <label>हिंदी</label><div class="row"><select data-vp="hi"><option value="">${t('Automatic (best female voice)', 'अपने-आप (सबसे अच्छी महिला आवाज़)')}</option></select><button class="round small" data-vt="hi">▶</button></div>
+        <p class="small">${t('👩 = female voice. Tap ▶ to listen, then keep the one that sounds like a kind teacher.', '👩 = महिला आवाज़। ▶ दबाकर सुनें और जो आवाज़ प्यारी टीचर जैसी लगे, वही रखें।')}</p></div>
       <div class="explain" style="text-align:left">${advice.map((a) => `• ${esc(a)}`).join('<br>')}</div>
       <button class="btn ghost" data-close style="margin-top:10px">OK</button>`);
     const res = (txt) => { const el = document.querySelector('[data-vres]'); if (el) { el.textContent = txt; } };
     const test = async (lang, text) => { const before = K.voiceDiag.started; res(t('Speaking…', 'बोल रहा है…')); await say(text, { lang }); res(K.voiceDiag.started > before || K.plug('TextToSpeech') || vo ? t('✅ Did you hear it? If not, check volume and silent mode.', '✅ क्या आपने सुना? न सुना हो तो वॉल्यूम और साइलेंट मोड देखें।') : t(`❌ The voice did not start (${K.voiceDiag.lastError || 'no response'}). See the tips below.`, `❌ आवाज़ शुरू नहीं हुई (${K.voiceDiag.lastError || 'कोई जवाब नहीं'})। नीचे के सुझाव देखें।`)); };
+    const LINES = { en: 'Hello children! Today we will learn something new. Are you ready?', hi: 'नमस्ते बच्चों! आज हम कुछ नया सीखेंगे। क्या आप तैयार हैं?' };
+    ['en', 'hi'].forEach(async (lg) => {
+      const sel = document.querySelector(`[data-vp="${lg}"]`); if (!sel) { return; }
+      const list = await K.voiceList(lg === 'en' ? 'en-IN' : 'hi-IN');
+      list.forEach((v) => { const o = document.createElement('option'); o.value = v.name; o.textContent = v.label; sel.appendChild(o); });
+      sel.value = (K.state.voicePick || {})[lg] || '';
+      sel.onchange = () => { K.state.voicePick = { ...(K.state.voicePick || {}), [lg]: sel.value }; K.save(); test(lg === 'en' ? 'en-IN' : 'hi-IN', LINES[lg]); };
+      document.querySelector(`[data-vt="${lg}"]`).onclick = () => test(lg === 'en' ? 'en-IN' : 'hi-IN', LINES[lg]);
+    });
     document.querySelector('[data-ten]').onclick = () => test('en-IN', 'Hello! I am Golu. Can you hear me?');
     document.querySelector('[data-thi]').onclick = () => test('hi-IN', 'नमस्ते! मैं गोलू हूँ। क्या आप मुझे सुन सकते हैं?');
   }
