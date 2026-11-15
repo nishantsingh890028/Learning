@@ -13,6 +13,8 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- the strips behind the status bar and navigation bar use the app's cream background -->
+        <item name="android:windowBackground">@color/kkm_bg</item>
     </style>
 
 

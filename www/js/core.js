@@ -9,7 +9,7 @@ window.K = (() => {
     entitlement: 'full',
     priceFallback: '₹299',
     demoUnlock: true,                                         // browser preview only; never unlocks in the Android app
-    version: '3.3.0',
+    version: '3.4.0',
     // Testing: everything unlocked. Set to false before publishing so the Full Pack purchase works.
     unlockAll: true,
     dailyCount: 5,
@@ -385,6 +385,22 @@ window.K = (() => {
   K.current = 'home';
   K.backStack = [];
   /** Render a screen with a top bar. back: function for the back button. */
+  // ---------------------------------------------------------------- fit any screen: phone, tablet, laptop, portrait or landscape
+  // Phones use the layout as designed. Bigger screens scale the whole app up (CSS zoom) so it fills the screen like a big phone,
+  // and wide screens get more columns (container queries in style.css). Only browsers with standard CSS zoom are scaled.
+  K.zoom = 1;
+  K.fit = () => {
+    const W = window.innerWidth; const H = window.innerHeight;
+    const can = typeof Element !== 'undefined' && 'currentCSSZoom' in Element.prototype;
+    let s = can ? Math.min(W / 440, H / (W > H ? 620 : 760)) : 1;
+    s = Math.round(Math.max(1, Math.min(1.7, s)) * 20) / 20;
+    K.zoom = s;
+    const r = document.documentElement;
+    r.style.setProperty('--z', String(s)); r.style.setProperty('--app-h', `${H / s}px`);
+    r.classList.toggle('short', H < 520); r.classList.toggle('wide', W / s >= 700);
+  };
+  window.addEventListener('resize', K.fit); window.addEventListener('orientationchange', () => setTimeout(K.fit, 150)); K.fit();
+
   K.render = (title, body, { name = 'screen', back = null, right = null, mascot = ['act', 'poem', 'story', 'trace'].includes(name) } = {}) => {
     K.current = name;
     K.stopMusic(); K.stopVoice();

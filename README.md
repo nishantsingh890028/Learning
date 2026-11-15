@@ -1,4 +1,4 @@
-# Khel Khel Mein: Play & Learn (Android) – v3.3
+# Khel Khel Mein: Play & Learn (Android) – v3.4
 
 > **Testing mode is ON:** everything is unlocked (`unlockAll: true` in `www/js/core.js`). Set it to `false` before publishing so the Full Pack purchase works.
 
@@ -44,6 +44,7 @@ Golu the elephant teaches every lesson through games.
   - lifts and queues, birthday parties, road safety, being on time
 - **Daily Journey:** 6 activities a day (about 20 minutes): language, syllabus maths, Maths Gym or Abacus, My World, a values lesson, and a poem, drawing, puzzle or story. It moves through the syllabus chapter by chapter.
 - **Voice:** soft studio neural voice, generated once and bundled with the app (see section 2). Until the voice files exist, the app uses the phone's best voice.
+- **Fits every screen (v3.4):** phones, tablets and laptops, portrait or landscape. Bigger screens scale the whole app up and get more columns; phones held sideways put pictures beside the text. On Android the app stays clear of the status bar and navigation bar.
 - **Parents:** a guide on first launch, a daily report with talk prompts, syllabus progress per subject, several children, a class picker, a play-time limit and a parent gate.
 
 ```

@@ -234,7 +234,7 @@
         body: `<div class="numline-wrap"><div class="numline" style="--n:${ticks.length}">${ticks.map((v) => `<button class="nl-t ${v === start ? 'start' : ''}" data-v="${v}"><span class="nl-dot"></span><b>${v}</b></button>`).join('')}<div class="frog" data-frog>🐸</div></div></div>
           <div class="center big-sum">${start} ${back2 ? '−' : '+'} ${hop} = <b>?</b></div>`,
       });
-      const frog = q('[data-frog]'); const place = (v) => { const el = q(`[data-v="${v}"]`); const wr = q('.numline').getBoundingClientRect(); const b = el.getBoundingClientRect(); frog.style.left = `${b.left - wr.left + b.width / 2}px`; };
+      const frog = q('[data-frog]'); const place = (v) => { const el = q(`[data-v="${v}"]`); const wr = q('.numline').getBoundingClientRect(); const b = el.getBoundingClientRect(); frog.style.left = `${(b.left - wr.left + b.width / 2) / K.zoom}px`; };
       place(start);
       const wrap = q('.numline-wrap'); const st = q(`[data-v="${start}"]`); wrap.scrollLeft = Math.max(0, st.offsetLeft - wrap.clientWidth / 3);
       qa('[data-v]').forEach((el) => {

@@ -169,7 +169,7 @@
       for (let yy = 0; yy < H; yy += STEP) { for (let xx = 0; xx < W; xx += STEP) { if (body[(yy * W + xx) * 4 + 3] > 128) { target.push([xx, yy]); } } }
       const c = ink.getContext('2d'); c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = lw;
       let drawing = false; let last = null; let hue = 260; let solved = false;
-      const pos = (e) => { const r = ink.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+      const pos = (e) => { const r = ink.getBoundingClientRect(); return [(e.clientX - r.left) / K.zoom, (e.clientY - r.top) / K.zoom]; };
       ink.onpointerdown = (e) => { drawing = true; last = pos(e); try { ink.setPointerCapture(e.pointerId); } catch { /* synthetic pointer */ } };
       ink.onpointermove = (e) => { if (!drawing) { return; } const p = pos(e); hue = (hue + 2) % 360; c.strokeStyle = `hsl(${hue} 85% 55%)`; c.beginPath(); c.moveTo(...last); c.lineTo(...p); c.stroke(); last = p; };
       ink.onpointerup = ink.onpointercancel = () => { drawing = false; if (!solved && score().cover > 0.78) { success(); } };
@@ -607,7 +607,7 @@
     bg();
     const history = [];
     const snap = () => { history.push(c.getImageData(0, 0, W * dpr, H * dpr)); if (history.length > 15) { history.shift(); } };
-    const pos = (e) => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    const pos = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / K.zoom, (e.clientY - r.top) / K.zoom]; };
     const N = 8;
     const stroke = (a, b) => {
       c.strokeStyle = color; c.lineWidth = size; c.lineCap = 'round'; c.lineJoin = 'round';

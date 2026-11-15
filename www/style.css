@@ -579,3 +579,35 @@ ul.perks, .report { padding-left: 20px; margin: 8px 0; line-height: 1.5; }
 .flag-bar .sw { width: 64px; height: 26px; border-radius: 6px; border: 2px solid #ccc; margin-bottom: 4px; display: block; }
 .prompt { font-size: 20px; font-weight: 800; text-align: center; margin: 4px 0 8px; }
 .poem-lines .pl small { display: block; font-size: .7em; color: var(--muted); font-weight: 700; }
+
+/* ===== v3.4 fit every screen: phones, tablets, laptops, portrait & landscape ===== */
+#app { zoom: var(--z, 1); height: var(--app-h, 100%); max-width: 1040px; container-type: inline-size; container-name: app; }
+.overlay .modal { zoom: var(--z, 1); max-height: calc(88vh / var(--z, 1)); }
+.toast { zoom: var(--z, 1); }
+html, body { height: 100%; overflow: hidden; }
+/* keep forms and reading lines comfortable on wide screens */
+.onboarding, .form-wrap { max-width: 720px; margin-left: auto; margin-right: auto; }
+.fact-card, .story-page, .quiz-card, .letter-card, .poem-lines, .situ, .moral { max-width: 820px; margin-left: auto; margin-right: auto; }
+/* wide layouts (tablet landscape, laptop) */
+@container app (min-width: 700px) {
+  .screen { padding-left: 24px; padding-right: 24px; }
+  .subjects { grid-template-columns: repeat(4, 1fr); } .gallery { grid-template-columns: repeat(4, 1fr); }
+  .grid.fun { grid-template-columns: repeat(6, 1fr); }
+  .scene { height: 280px; } .scene .z-ac { font-size: 64px; } .scene .z-ac.z-main { font-size: 92px; }
+  .story-page .story-text { font-size: 22px; }
+}
+/* short screens (phone held sideways): picture beside the text, smaller Golu, no speech bubble over the content */
+.short .bar { padding-top: 6px; padding-bottom: 6px; } .short .bar h1 { font-size: 19px; -webkit-line-clamp: 1; }
+.short .round { width: 46px; height: 46px; font-size: 20px; }
+.short .mascot.dock { width: 58px; height: 58px; } .short .bubble { display: none; }
+.short .screen.with-mascot { padding-bottom: 76px; }
+.short .scene { height: 170px; } .short .scene.mini { height: 120px; }
+@media (orientation: landscape) and (min-width: 600px) {
+  .story-page { display: grid; grid-template-columns: 1.1fr 1fr; gap: 14px; align-items: center; text-align: left; }
+  .story-page .scene { grid-row: span 2; margin: 0; height: min(190px, 46vh); }
+  .story-page .page-no { grid-column: 2; }
+  .fact-card { display: grid; grid-template-columns: 1fr 1.1fr; gap: 12px; align-items: center; text-align: left; }
+  .fact-card > .dia-wrap, .fact-card > .scene, .fact-card > .card-emoji { grid-row: span 3; margin: 0; }
+  .dia { max-height: 200px; }
+}
+@media (max-height: 700px) and (orientation: portrait) { .scene { height: 175px; } .scene .z-ac.z-main { font-size: 62px; } .scene.mini { height: 130px; } }

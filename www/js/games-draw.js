@@ -78,7 +78,7 @@
       wait(500).then(demo);
       // child's ink
       let pts = []; let drawing = false; let last = null; let hue = rand(0, 360);
-      const pos = (e) => { const b = ink.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+      const pos = (e) => { const b = ink.getBoundingClientRect(); return [(e.clientX - b.left) / K.zoom, (e.clientY - b.top) / K.zoom]; };
       ink.onpointerdown = (e) => { drawing = true; last = pos(e); pts.push(last); try { ink.setPointerCapture(e.pointerId); } catch { /* synthetic */ } };
       ink.onpointermove = (e) => { if (!drawing) { return; } const p = pos(e); hue = (hue + 3) % 360; c.strokeStyle = `hsl(${hue} 85% 52%)`; c.lineWidth = lw; c.lineCap = 'round'; c.beginPath(); c.moveTo(...last); c.lineTo(...p); c.stroke(); for (const pp of resample([last, p], 4)) { pts.push(pp); } last = p; };
       ink.onpointerup = ink.onpointercancel = () => { drawing = false; if (!solved && score().cover > 0.86 && score().acc > 0.7) { success(); } };

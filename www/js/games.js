@@ -49,7 +49,7 @@
           const dx = m.clientX - sx; const dy = m.clientY - sy;
           if (!moved && Math.hypot(dx, dy) > 8) { moved = true; el.classList.add('dragging'); K.sfx.tap(); }
           if (moved) {
-            el.style.transform = `translate(${dx}px,${dy}px) scale(1.12)`;
+            el.style.transform = `translate(${dx / K.zoom}px,${dy / K.zoom}px) scale(1.12)`;
             const h = hit(m.clientX, m.clientY); qa('.drop-hot').forEach((x) => x !== h && x.classList.remove('drop-hot')); if (h) { h.classList.add('drop-hot'); }
           }
         };
@@ -134,7 +134,7 @@
       });
       const line = (a, b, col) => {
         const box = q('.match').getBoundingClientRect(); const A = a.getBoundingClientRect(); const B = b.getBoundingClientRect();
-        q('.lines').insertAdjacentHTML('beforeend', `<line x1="${A.right - box.left}" y1="${A.top + A.height / 2 - box.top}" x2="${B.left - box.left}" y2="${B.top + B.height / 2 - box.top}" stroke="${col}" stroke-width="6" stroke-linecap="round"/>`);
+        q('.lines').insertAdjacentHTML('beforeend', `<line x1="${(A.right - box.left) / K.zoom}" y1="${(A.top + A.height / 2 - box.top) / K.zoom}" x2="${(B.left - box.left) / K.zoom}" y2="${(B.top + B.height / 2 - box.top) / K.zoom}" stroke="${col}" stroke-width="6" stroke-linecap="round"/>`);
       };
       const COLS = ['#f97316', '#16a34a', '#3b82f6', '#a855f7', '#ec4899', '#0ea5a4'];
       qa('[data-l]').forEach((el) => { el.onclick = () => { if (el.disabled) { return; } K.sfx.pop(); qa('[data-l]').forEach((x) => x.classList.remove('sel')); el.classList.add('sel'); sel = el; const v = set[Number(el.dataset.l)][0]; if (typeof v === 'object' || !/^\p{Extended_Pictographic}/u.test(v)) { sayT(v); } }; });

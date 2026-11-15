@@ -2,6 +2,17 @@
   "appId": "com.khelkhelmein.app",
   "appName": "Khel Khel Mein",
   "webDir": "www",
-  "android": { "backgroundColor": "#fff7ed", "allowMixedContent": false },
-  "plugins": { "SplashScreen": { "launchShowDuration": 0 } }
+  "android": {
+    "backgroundColor": "#fff7e8",
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    },
+    "SystemBars": {
+      "style": "LIGHT",
+      "insetsHandling": "css"
+    }
+  }
 }
