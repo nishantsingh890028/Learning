@@ -1,0 +1,7 @@
+{
+  "appId": "com.khelkhelmein.app",
+  "appName": "Khel Khel Mein",
+  "webDir": "www",
+  "android": { "backgroundColor": "#fff7ed", "allowMixedContent": false },
+  "plugins": { "SplashScreen": { "launchShowDuration": 0 } }
+}

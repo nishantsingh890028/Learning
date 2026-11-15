@@ -1,0 +1,29 @@
+# Builds a test APK on GitHub's servers. Runs on every push, or by hand from the Actions tab.
+# The APK appears under Actions → (latest run) → Artifacts, and as a Release you can open on your phone.
+name: Build APK
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: android-actions/setup-android@v3
+      - run: npm ci
+      - run: npm run build
+      - run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - run: cp android/app/build/outputs/apk/debug/app-debug.apk khel-khel-mein-test.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: khel-khel-mein-apk, path: khel-khel-mein-test.apk }
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-${{ github.run_number }}
+          name: Test build ${{ github.run_number }}
+          files: khel-khel-mein-test.apk

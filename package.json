@@ -1,0 +1,28 @@
+{
+  "name": "khel-khel-mein",
+  "version": "3.3.0",
+  "private": true,
+  "description": "Khel Khel Mein \u2013 Play & Learn: ABC, Hindi letters, counting, shapes, animals, memory and maths for kids aged 2\u20137.",
+  "scripts": {
+    "build:native": "esbuild src/native.js --bundle --format=iife --minify --outfile=www/native.js",
+    "build": "npm run build:native && npx cap sync android",
+    "open": "npx cap open android",
+    "serve": "npx http-server www -p 8080 -c-1",
+    "voice": "node tools/voice/build-voice.mjs",
+    "voice:sample": "node tools/voice/build-voice.mjs --sample 40"
+  },
+  "dependencies": {
+    "@capacitor-community/text-to-speech": "^8.0.2",
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/core": "^8.6.2",
+    "@revenuecat/purchases-capacitor": "^14.1.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.2",
+    "@fontsource/baloo-2": "^5.3.0",
+    "esbuild": "^0.25.0"
+  }
+}

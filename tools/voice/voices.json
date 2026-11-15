@@ -1,0 +1,12 @@
+{
+  "parallel": 4,
+  "azure": {
+    "hi": { "locale": "hi-IN", "voice": "hi-IN-SwaraNeural", "style": "cheerful", "styledegree": 0.6, "rate": "-12%", "pitch": "+2%" },
+    "en": { "locale": "en-IN", "voice": "en-IN-NeerjaNeural", "style": "cheerful", "styledegree": 0.6, "rate": "-12%", "pitch": "+2%" }
+  },
+  "sarvam": {
+    "hi": { "locale": "hi-IN", "speaker": "anushka", "model": "bulbul:v2", "pace": 0.9 },
+    "en": { "locale": "en-IN", "speaker": "anushka", "model": "bulbul:v2", "pace": 0.9 }
+  },
+  "_help": "Other soft Azure voices to try: hi-IN-AnanyaNeural, hi-IN-KavyaNeural, hi-IN-AartiNeural, en-IN-AnanyaNeural, en-IN-KavyaNeural, en-IN-AartiNeural (remove 'style' if a voice does not support it). Check the Azure voice gallery and Sarvam docs for current names."
+}
