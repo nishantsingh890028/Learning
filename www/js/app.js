@@ -290,6 +290,7 @@
     K.current = 'form'; document.getElementById('app').innerHTML = html;
     const bindCls = () => qa('[data-cls]').forEach((el) => { el.onclick = () => { K.sfx.tap(); cls = el.dataset.cls; qa('[data-cls]').forEach((x) => x.classList.toggle('on', x === el)); }; });
     bindCls();
+    { const nm = q('[data-name]'); const show = () => setTimeout(() => { try { nm.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { /* old WebView */ } }, 350); nm.onfocus = show; nm.onclick = show; }
     qa('[data-age]').forEach((el) => { el.onclick = () => { K.sfx.tap(); age = Number(el.dataset.age); cls = SYL.classForAge(age); qa('[data-age]').forEach((x) => x.classList.toggle('on', x === el)); q('[data-clsrow]').innerHTML = clsBtns(); bindCls(); }; });
     qa('[data-board]').forEach((el) => { el.onclick = () => { K.sfx.tap(); board = el.dataset.board; qa('[data-board]').forEach((x) => x.classList.toggle('on', x === el)); q('[data-clsrow]').innerHTML = clsBtns(); bindCls(); }; });
     qa('[data-med]').forEach((el) => { el.onclick = () => { K.sfx.tap(); medium = el.dataset.med; qa('[data-med]').forEach((x) => x.classList.toggle('on', x === el)); }; });

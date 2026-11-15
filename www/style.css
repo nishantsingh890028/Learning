@@ -611,3 +611,7 @@ html, body { height: 100%; overflow: hidden; }
   .dia { max-height: 200px; }
 }
 @media (max-height: 700px) and (orientation: portrait) { .scene { height: 175px; } .scene .z-ac.z-main { font-size: 62px; } .scene.mini { height: 130px; } }
+/* v3.4.1: centred screens must never push content above the top when they are taller than the screen (e.g. keyboard open) */
+.onboarding { justify-content: flex-start; }
+.onboarding > :first-child { margin-top: auto; } .onboarding > :last-child { margin-bottom: auto; }
+.form { padding-top: 12px; padding-bottom: 40px; }
