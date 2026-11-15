@@ -615,3 +615,16 @@ html, body { height: 100%; overflow: hidden; }
 .onboarding { justify-content: flex-start; }
 .onboarding > :first-child { margin-top: auto; } .onboarding > :last-child { margin-bottom: auto; }
 .form { padding-top: 12px; padding-bottom: 40px; }
+/* v3.4.1 profile form: fixed header, question cards, pinned action button */
+.form-bar { justify-content: center; padding-left: 16px; padding-right: 16px; } .form-bar h1 { font-size: 21px; }
+.screen.form { display: block; text-align: left; padding: 4px 14px 24px; max-width: 720px; width: 100%; margin: 0 auto; }
+.fbox { background: var(--card); border-radius: 22px; box-shadow: var(--shadow); padding: 12px 14px 14px; margin: 0 0 12px; }
+.fbox label { display: block; font-weight: 800; font-size: 17px; margin: 0 0 10px; }
+.fbox .row.wrap { gap: 8px; } .fbox .seg { min-height: 46px; } .fbox p.small { margin: 10px 0 0; }
+.fbox input { width: 100%; font-family: inherit; font-size: 22px; padding: 12px 14px; border-radius: 16px; border: 3px solid var(--line); background: #fff; color: var(--ink); -webkit-user-select: text; user-select: text; }
+.fbox input:focus { outline: none; border-color: var(--purple); }
+.fbox input.wrong { border-color: #f87171; animation: shake .4s; }
+.ava-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 10px; justify-items: center; }
+.form-foot { display: flex; gap: 10px; padding: 10px 14px 12px; background: linear-gradient(transparent, var(--bg) 30%); max-width: 720px; width: 100%; margin: 0 auto; }
+.form-foot .btn { flex: 1; min-height: 60px; } .form-foot .btn.ghost { flex: 0 0 auto; }
+.short .form-foot { padding-top: 6px; padding-bottom: 6px; } .short .form-foot .btn { min-height: 50px; }

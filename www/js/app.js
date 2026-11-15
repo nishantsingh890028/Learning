@@ -275,18 +275,18 @@
     const c = edit || { name: '', age: 6, medium: 'both', avatar: pick(AVATARS) };
     let { age, medium, avatar } = c; let cls = c.cls || SYL.classForAge(age); let board = c.board || 'cbse';
     const clsBtns = () => SYL.CLASSES.map((x) => { const l = SYL.classLabel(x.id, board); return `<button class="seg ${x.id === cls ? 'on' : ''}" data-cls="${x.id}">${l.en} · ${l.hi}</button>`; }).join('');
-    const html = `<div class="screen onboarding form">
-      <h2>${edit ? 'Edit profile · प्रोफ़ाइल बदलें' : "Your child's profile · बच्चे की प्रोफ़ाइल"}</h2>
-      <label>Name · नाम</label><input data-name maxlength="20" value="${esc(c.name)}" placeholder="e.g. Aarav / आरव" autocomplete="off">
-      <label>Age · उम्र</label><div class="row wrap">${[3, 4, 5, 6, 7, 8, 9, 10].map((a) => `<button class="seg ${a === age ? 'on' : ''}" data-age="${a}">${a}</button>`).join('')}</div>
-      <label>School board · स्कूल बोर्ड</label><div class="row wrap">${SYL.BOARDS.map((b) => `<button class="seg ${b.id === board ? 'on' : ''}" data-board="${b.id}">${b.name.en}</button>`).join('')}</div>
-      <label>Class · कक्षा</label><div class="row wrap" data-clsrow>${clsBtns()}</div>
-      <label>Learning medium · सीखने का माध्यम</label><div class="row wrap">
+    const html = `<div class="bar form-bar"><h1>${edit ? 'Edit profile · प्रोफ़ाइल बदलें' : "Your child's profile · बच्चे की प्रोफ़ाइल"}</h1></div>
+      <div class="screen form">
+      <section class="fbox"><label>👤 Name · नाम</label><input data-name maxlength="20" value="${esc(c.name)}" placeholder="e.g. Aarav / आरव" autocomplete="off" enterkeyhint="done"></section>
+      <section class="fbox"><label>🎂 Age · उम्र</label><div class="row wrap">${[3, 4, 5, 6, 7, 8, 9, 10].map((a) => `<button class="seg ${a === age ? 'on' : ''}" data-age="${a}">${a}</button>`).join('')}</div></section>
+      <section class="fbox"><label>🏫 School board · स्कूल बोर्ड</label><div class="row wrap">${SYL.BOARDS.map((b) => `<button class="seg ${b.id === board ? 'on' : ''}" data-board="${b.id}">${b.name.en}</button>`).join('')}</div></section>
+      <section class="fbox"><label>📚 Class · कक्षा</label><div class="row wrap" data-clsrow>${clsBtns()}</div></section>
+      <section class="fbox"><label>🗣️ Learning medium · सीखने का माध्यम</label><div class="row wrap">
         <button class="seg ${medium === 'en' ? 'on' : ''}" data-med="en">English</button><button class="seg ${medium === 'hi' ? 'on' : ''}" data-med="hi">हिंदी</button><button class="seg ${medium === 'both' ? 'on' : ''}" data-med="both">Both · दोनों</button></div>
-      <p class="muted small">Both: English with Hindi meanings everywhere. Every medium includes both English and Hindi lessons.<br>दोनों: हर जगह अंग्रेज़ी के साथ हिंदी अर्थ। हर माध्यम में अंग्रेज़ी और हिंदी दोनों के पाठ हैं।</p>
-      <label>Avatar · चेहरा</label><div class="row wrap">${AVATARS.map((a) => `<button class="ava ${a === avatar ? 'on' : ''}" data-ava="${a}">${a}</button>`).join('')}</div>
-      <button class="btn big green" data-save>${edit ? 'Save · सेव करें' : "Let's play · चलो खेलें"} ▶</button>
-      ${!first ? '<button class="btn ghost" data-cancel style="margin-top:10px">Cancel · रद्द करें</button>' : ''}</div>`;
+        <p class="muted small">Both: English with Hindi meanings everywhere. Every medium includes both English and Hindi lessons.<br>दोनों: हर जगह अंग्रेज़ी के साथ हिंदी अर्थ। हर माध्यम में अंग्रेज़ी और हिंदी दोनों के पाठ हैं।</p></section>
+      <section class="fbox"><label>😊 Avatar · चेहरा</label><div class="ava-grid">${AVATARS.map((a) => `<button class="ava ${a === avatar ? 'on' : ''}" data-ava="${a}">${a}</button>`).join('')}</div></section>
+      </div>
+      <div class="form-foot">${!first ? '<button class="btn ghost" data-cancel>Cancel · रद्द करें</button>' : ''}<button class="btn big green" data-save>${edit ? 'Save · सेव करें' : "Let's play · चलो खेलें"} ▶</button></div>`;
     K.current = 'form'; document.getElementById('app').innerHTML = html;
     const bindCls = () => qa('[data-cls]').forEach((el) => { el.onclick = () => { K.sfx.tap(); cls = el.dataset.cls; qa('[data-cls]').forEach((x) => x.classList.toggle('on', x === el)); }; });
     bindCls();
