@@ -22,8 +22,8 @@
   // ---------------------------------------------------------------- problem generators by level
   const R = rand;
   const GEN = {
-    add: [null, () => { const a = R(1, 6); return [a, R(1, 10 - a)]; }, () => { const a = R(3, 15); return [a, R(2, 20 - a)]; }, () => { const a = R(11, 70); const b = R(10, 89 - a); return (a % 10) + (b % 10) < 10 ? [a, b] : [a - (a % 10) + R(0, 4), b - (b % 10) + R(0, 4)]; }, () => { let a; let b; do { a = R(15, 79); b = R(12, 99 - a); } while ((a % 10) + (b % 10) < 10); return [a, b]; }, () => [R(105, 650), R(95, 349)]],
-    sub: [null, () => { const a = R(3, 10); return [a, R(1, a - 1)]; }, () => { const a = R(11, 20); return [a, R(2, a - 1)]; }, () => { const a = R(30, 99); const b = R(10, a - 10); return (a % 10) >= (b % 10) ? [a, b] : [a, b - (b % 10) + R(0, a % 10)]; }, () => { let a; let b; do { a = R(31, 99); b = R(12, a - 5); } while ((a % 10) >= (b % 10)); return [a, b]; }, () => { const a = R(300, 999); return [a, R(105, a - 50)]; }],
+    add: [null, () => { const a = R(1, 6); return [a, R(1, 10 - a)]; }, () => { const a = R(3, 15); return [a, R(2, 20 - a)]; }, () => { const a = R(11, 70); const b = R(10, 89 - a); return (a % 10) + (b % 10) < 10 ? [a, b] : [a - (a % 10) + R(0, 4), b - (b % 10) + R(0, 4)]; }, () => { let a; let b; do { a = R(15, 79); b = R(12, 99 - a); } while ((a % 10) + (b % 10) < 10); return [a, b]; }, () => [R(105, 650), R(95, 349)], () => { let a; let b; do { a = R(1205, 6899); b = R(1095, 9899 - a); } while ((a % 10) + (b % 10) < 10); return [a, b]; }],
+    sub: [null, () => { const a = R(3, 10); return [a, R(1, a - 1)]; }, () => { const a = R(11, 20); return [a, R(2, a - 1)]; }, () => { const a = R(30, 99); const b = R(10, a - 10); return (a % 10) >= (b % 10) ? [a, b] : [a, b - (b % 10) + R(0, a % 10)]; }, () => { let a; let b; do { a = R(31, 99); b = R(12, a - 5); } while ((a % 10) >= (b % 10)); return [a, b]; }, () => { const a = R(300, 999); return [a, R(105, a - 50)]; }, () => { let a; let b; do { a = R(3001, 9800); b = R(1050, a - 100); } while ((a % 10) >= (b % 10)); return [a, b]; }],
     mul: [null, () => [R(2, 5), pick([2, 5, 10])], () => [R(1, 10), R(2, 5)], () => [R(2, 10), R(2, 10)], () => [R(12, 49), R(2, 9)], () => [R(102, 399), R(2, 9)]],
     div: [null, () => { const d = pick([2, 3, 5]); return [d * R(1, 4), d]; }, () => { const d = R(2, 5); return [d * R(2, 10), d]; }, () => { const d = R(2, 10); return [d * R(2, 10), d]; }, () => { const d = R(2, 9); return [d * R(11, 30), d]; }, () => { const d = R(2, 9); return [d * R(30, 120), d]; }],
   };
@@ -139,7 +139,7 @@
   // ================================================================ MATHLAB: teach → practise (adaptive)
   // act: { op:'add'|'sub'|'mul'|'div'|'mix', level: 1–5, min?, max?, rounds? }
   E.mathlab = (act, back) => {
-    const total = act.rounds || 10; let lv = act.level || 1; const lmin = act.min || Math.max(1, lv - 1); const lmax = act.max || Math.min(5, lv + 1);
+    const total = act.rounds || 10; let lv = act.level || 1; const lmin = act.min || Math.max(1, lv - 1); const lmax = act.max || Math.min(Math.max(5, lv), lv + 1);
     let r = 0; let good = 0; let streak = 0; let misses = 0;
     const opFor = () => (act.op === 'mix' ? pick(['add', 'sub', 'mul', 'div'].filter((o) => !(lv === 1 && o === 'div'))) : act.op);
     const intro = () => {

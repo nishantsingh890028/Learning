@@ -1,0 +1,36 @@
+# Makes the "studio voice" (a warm, natural female teacher voice) for every line the app speaks, using Azure neural
+# text-to-speech, and commits the clips to www/audio/vo. Run it by hand: Actions → Build studio voice → Run workflow.
+# One-time setup: Settings → Secrets and variables → Actions → New repository secret
+#   AZURE_KEY    = key from Azure portal → Speech service → Keys and Endpoint (free tier covers this app)
+#   AZURE_REGION = e.g. centralindia
+# The next "Build APK" run (triggered by the commit) puts the voice into the app.
+name: Build studio voice
+on:
+  workflow_dispatch:
+    inputs:
+      sample:
+        description: 'Only make N sample clips to listen to first (0 = everything)'
+        default: '0'
+permissions:
+  contents: write
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22 }
+      - name: Make the clips
+        env:
+          AZURE_KEY: ${{ secrets.AZURE_KEY }}
+          AZURE_REGION: ${{ secrets.AZURE_REGION }}
+        run: |
+          if [ -z "$AZURE_KEY" ]; then echo "::error::Add the AZURE_KEY secret first (see the top of this file)."; exit 1; fi
+          if [ "${{ github.event.inputs.sample }}" != "0" ]; then node tools/voice/build-voice.mjs --sample ${{ github.event.inputs.sample }}; else node tools/voice/build-voice.mjs; fi
+      - name: Commit the voice
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add www/audio
+          git diff --cached --quiet || git commit -m "Studio voice clips"
+          git push

@@ -9,7 +9,7 @@ window.K = (() => {
     entitlement: 'full',
     priceFallback: '₹299',
     demoUnlock: true,                                         // browser preview only; never unlocks in the Android app
-    version: '3.5.0',
+    version: '4.0.0',
     // Testing: everything unlocked. Set to false before publishing so the Full Pack purchase works.
     unlockAll: true,
     dailyCount: 5,
@@ -37,8 +37,8 @@ window.K = (() => {
   };
   /** Level 1 = ages 3–5, 2 = ages 6–7, 3 = ages 8–10 */
   K.cls = (c = K.child()) => (!c ? 'bal' : c.cls || (window.SYL ? window.SYL.classForAge(c.age) : 'bal'));
-  K.level = (c = K.child()) => (!c ? 1 : ({ bal: 1, c1: 2, c2: 2, c3: 3 }[K.cls(c)] || (c.age <= 5 ? 1 : c.age <= 7 ? 2 : 3)));
-  K.LEVEL_NAME = { 1: { en: 'Little Explorer (3–5)', hi: 'नन्हे खोजी (3–5)' }, 2: { en: 'Young Learner (6–7)', hi: 'युवा सीखने वाले (6–7)' }, 3: { en: 'Smart Star (8–10)', hi: 'होशियार सितारे (8–10)' } };
+  K.level = (c = K.child()) => (!c ? 1 : ({ bal: 1, c1: 2, c2: 2, c3: 3, c4: 4, c5: 4 }[K.cls(c)] || (c.age <= 5 ? 1 : c.age <= 7 ? 2 : c.age <= 8 ? 3 : 4)));
+  K.LEVEL_NAME = { 1: { en: 'Little Explorer (3–5)', hi: 'नन्हे खोजी (3–5)' }, 2: { en: 'Young Learner (6–7)', hi: 'युवा सीखने वाले (6–7)' }, 3: { en: 'Smart Star (8)', hi: 'होशियार सितारे (8)' }, 4: { en: 'Senior Star (9–11)', hi: 'सीनियर सितारे (9–11)' } };
 
   // ---------------------------------------------------------------- language
   /** UI language: 'hi' for Hindi medium, otherwise English. 'both' shows English + Hindi subtitle. */
@@ -298,6 +298,11 @@ window.K = (() => {
     }
     return out.length ? out : [String(text)];
   };
+  // Golu only talks about the screen that is open: a speech (or a chain of speeches) started on a screen that has since
+  // been closed never "finishes", so old lessons cannot keep announcing things on the new screen.
+  { const sayRaw = K.say; K.say = (raw, opts = {}) => { const ep = K.rid; if (opts.ep != null && opts.ep !== ep) { return new Promise(() => {}); } return sayRaw(raw, opts).then(() => (K.rid === ep || opts.keep ? undefined : new Promise(() => {}))); }; }
+  /** run fn after ms only if the same screen is still open */
+  K.later = (fn, ms) => { const ep = K.rid; return setTimeout(() => { if (K.rid === ep) { fn(); } }, ms); };
   /** speak a {en,hi} object in the child's medium (both → English then Hindi) */
   K.sayT = async (o, opts) => {
     if (typeof o !== 'object' || o === null) { return K.say(o, opts); }
@@ -422,9 +427,35 @@ window.K = (() => {
     const c = K.child();
     const app = document.getElementById('app');
     app.innerHTML = `<div class="bar"><button class="round" data-back aria-label="Back">${back ? '⬅️' : '🏠'}</button><h1>${title}</h1>${right || `<div class="stars">⭐ <span data-stars>${c ? c.stars : 0}</span></div>`}</div><div class="screen ${mascot ? 'with-mascot' : ''}">${body}</div>${mascot ? `<button class="mascot dock" data-mascot aria-label="Golu">${K.MASCOT}</button><div class="bubble"></div>` : ''}`;
-    if (mascot) { app.querySelector('[data-mascot]').onclick = () => { const a = app.querySelector('[data-ask]'); if (a) { a.click(); } else { K.mascotCheer(); } }; }
+    if (mascot) { app.querySelector('[data-mascot]').onclick = () => K.askGolu(); }
     app.querySelector('[data-back]').onclick = () => { K.sfx.tap(); K.stopVoice(); K.stopMusic(); (back || K.home)(); };
     app.querySelector('.screen').scrollTop = 0;
+  };
+  // ---------------------------------------------------------------- Ask Golu: tap the mascot on any lesson for help with THIS screen
+  const H = (en, hi) => ({ en, hi });
+  K.HELP = {
+    quiz: H('Listen to the question, think, then tap the answer you believe is right. Tap the speaker to hear it again. After a right answer I explain why.', 'सवाल सुनो, सोचो, फिर सही लगने वाला उत्तर छुओ। दोबारा सुनने के लिए स्पीकर छुओ। सही उत्तर के बाद मैं कारण समझाऊँगा।'),
+    gen: H('Read the question carefully. Work it out in your head or in your notebook, then tap the answer. If you get it wrong twice, I will give you a hint.', 'सवाल ध्यान से पढ़ो। मन में या कॉपी में हल करो, फिर उत्तर छुओ। दो बार ग़लत हुआ तो मैं संकेत दूँगा।'),
+    facts: H('Read each picture card or tap it to hear me. Press Next to see the next card. At the end there is a short quiz.', 'हर चित्र-कार्ड पढ़ो या छूकर सुनो। अगला कार्ड देखने के लिए आगे दबाओ। आख़िर में छोटा क्विज़ है।'),
+    match: H('Tap a word on the left, then tap its partner on the right.', 'बाईं ओर एक शब्द छुओ, फिर दाईं ओर उसका जोड़ीदार छुओ।'),
+    sort: H('Pick up a card and drop it into the right basket.', 'एक कार्ड उठाओ और सही टोकरी में डालो।'),
+    order: H('Tap the pieces in the right order, first to last.', 'टुकड़ों को सही क्रम में, पहले से आख़िरी तक, छुओ।'),
+    story: H('Read each page or listen to me. Press Next to turn the page. At the end, answer the questions about the story.', 'हर पन्ना पढ़ो या मुझसे सुनो। पन्ना पलटने के लिए आगे दबाओ। अंत में कहानी के सवालों के जवाब दो।'),
+    poem: H('Tap Sing along to sing with the music, or Learn line by line: I say a line, then you say it.', 'संगीत के साथ गाने के लिए "साथ में गाओ" दबाओ, या "पंक्ति-दर-पंक्ति": मैं एक पंक्ति बोलूँगा, फिर तुम बोलो।'),
+    situation: H('Read what is happening and choose what a kind, wise child would do. I will tell you why.', 'पढ़ो क्या हो रहा है और चुनो कि एक दयालु, समझदार बच्चा क्या करेगा। मैं कारण बताऊँगा।'),
+    abacus: H('Move the beads: lower beads are worth 1 each, push them up to the bar. The top bead is worth 5, bring it down. Follow the numbered steps. Tap Hint if you are stuck.', 'मोती खिसकाओ: नीचे वाला हर मोती 1 का, उसे पट्टी तक ऊपर करो। ऊपर वाला मोती 5 का, उसे नीचे लाओ। क्रमांकित कदम देखो। अटको तो संकेत दबाओ।'),
+    mathlab: H('First watch how I solve it step by step. Then solve the next ones yourself on the number pad.', 'पहले देखो मैं कैसे कदम-दर-कदम हल करता हूँ। फिर अगले सवाल नंबर पैड पर ख़ुद हल करो।'),
+    vocabday: H('Learn the word and its meaning, pick the sentence that uses it correctly, then tap the mic and say your own sentence. I check that you used the word properly.', 'शब्द और उसका अर्थ सीखो, सही प्रयोग वाला वाक्य चुनो, फिर माइक दबाकर अपना वाक्य बोलो। मैं जाँचूँगा कि शब्द सही प्रयोग हुआ।'),
+    spell: H('Tap the letters in the right order to build the word.', 'शब्द बनाने के लिए अक्षर सही क्रम में छुओ।'),
+    sentence: H('Tap the words in the right order to make the sentence.', 'वाक्य बनाने के लिए शब्द सही क्रम में छुओ।'),
+    trace: H('Follow the dotted line with your finger, slowly and carefully.', 'बिंदु वाली रेखा पर उँगली धीरे-धीरे चलाओ।'),
+    cards: H('Tap each card to hear it, then press Next.', 'हर कार्ड छूकर सुनो, फिर आगे दबाओ।'),
+    memory: H('Turn two cards. If they match, they stay open. Remember where each picture is!', 'दो कार्ड पलटो। जोड़ी मिली तो खुले रहेंगे। याद रखो कौन सा चित्र कहाँ है!'),
+  };
+  K.askGolu = async () => {
+    const a = K.curAct || {}; const help = K.HELP[a.type] || H('Listen carefully and try your best. Tap the speaker to hear the question again.', 'ध्यान से सुनो और पूरी कोशिश करो। सवाल दोबारा सुनने के लिए स्पीकर छुओ।');
+    K.mascotCheer(); await K.sayT(help);
+    const ask = document.getElementById('app').querySelector('[data-ask]'); if (ask) { ask.click(); }
   };
   K.q = (s) => document.getElementById('app').querySelector(s);
   K.qa = (s) => [...document.getElementById('app').querySelectorAll(s)];

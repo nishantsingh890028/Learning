@@ -1,4 +1,14 @@
-# Khel Khel Mein: Play & Learn (Android) – v3.5
+# Khel Khel Mein: Play & Learn (Android) – v4.0
+
+## What's new in v4.0
+- **Classes 4 and 5** for CBSE (Santoor, Veena, Maths Mela, Our Wondrous World + Computers), ICSE (English, Hindi, Maths, Science, Social Studies, Computers) and International (English, Maths, Science, Global Perspectives, Hindi, Computing). Ages 9–11 map to Class 4–5.
+- **Each child sees only their own class**: the other-class buttons and "show more for other ages" are gone. A grown-up changes the class from ⚙️.
+- **Senior Star level**: harder maths with worked explanations (lakhs, HCF/LCM, fractions, decimals, angles, area, 24-hour time, bar graphs, word problems), classic poems (Stevenson, Rossetti, Longfellow, Wordsworth, Tagore, Kabir, Rahim, Tulsidas), longer value stories, real-life choices and a GK challenge.
+- **Diary**: Classwork (today's journey) + Homework (word of the day, a revision game, a notebook task a grown-up ticks). Grown-ups → Diary shows every day.
+- **Word of the day**: learn → pick the correct use → the child says a sentence; the phone's speech recogniser turns it into text and Golu checks the word is used in a full, original sentence. A voice clip can be saved for parents. Uses the RECORD_AUDIO permission only when 🎤 is tapped.
+- **Abacus**: numbered step list for every demo; new carry-forward and borrow lessons, column by column, with a written sum beside the abacus and step-by-step checking; up to 4 rods.
+- **Golu speaks only about the screen that is open**, and tapping Golu on a lesson explains how to play it.
+- **Studio voice in one click**: Actions → *Build studio voice* (needs the `AZURE_KEY` secret).
 
 > **Testing mode is ON:** everything is unlocked (`unlockAll: true` in `www/js/core.js`). Set it to `false` before publishing so the Full Pack purchase works.
 
@@ -114,7 +124,9 @@ The app speaks about 10,300 different lines (246,000 characters). A free Azure a
 
 Long text is spoken in short sentences. Chrome's voices stop after about 15 seconds and drop speech that starts right after a stop, which used to cut off stories and teaching steps. Lines made up on the fly (for example "347 + 218?") are spoken by the phone's voice if they have no clip. The app picks the best Hindi and English voice on the phone. Parents can also install Google's Hindi voice: Settings → Text-to-speech → Google → Install voice data → Hindi.
 
-The app never uses the microphone. In "Your turn" the child says the poem out loud and taps "I said it!".
+The microphone is used only in Word of the Day, when the child taps 🎤. In poems' "Your turn" the child says the line out loud and taps "I said it!".
+
+**Maestra (Freya / Elsie):** Maestra's API (maestra.ai/docs) has no plain text-to-speech call – its voiceover works by dubbing an uploaded audio/video file – so it cannot generate the app's ~12,000 short lines automatically, and its terms for bundling the audio in an app are not published. Azure's `en-IN-NeerjaNeural` and `hi-IN-SwaraNeural` are the closest warm Indian female teacher voices; they are set in `tools/voice/voices.json`.
 
 ## 3. Turn on payments (the Full Pack)
 

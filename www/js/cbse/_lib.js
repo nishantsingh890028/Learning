@@ -8,13 +8,23 @@
     { id: 'bal', name: { en: 'Balvatika', hi: 'बालवाटिका' }, sub: { en: 'Nursery – UKG · ages 3–5', hi: 'नर्सरी – यूकेजी · 3–5 साल' }, level: 1 },
     { id: 'c1', name: { en: 'Class 1', hi: 'कक्षा 1' }, sub: { en: 'age 6', hi: '6 साल' }, level: 2 },
     { id: 'c2', name: { en: 'Class 2', hi: 'कक्षा 2' }, sub: { en: 'age 7', hi: '7 साल' }, level: 2 },
-    { id: 'c3', name: { en: 'Class 3', hi: 'कक्षा 3' }, sub: { en: 'ages 8–10', hi: '8–10 साल' }, level: 3 },
+    { id: 'c3', name: { en: 'Class 3', hi: 'कक्षा 3' }, sub: { en: 'age 8', hi: '8 साल' }, level: 3 },
+    { id: 'c4', name: { en: 'Class 4', hi: 'कक्षा 4' }, sub: { en: 'age 9', hi: '9 साल' }, level: 4 },
+    { id: 'c5', name: { en: 'Class 5', hi: 'कक्षा 5' }, sub: { en: 'ages 10–11', hi: '10–11 साल' }, level: 4 },
   ];
   SYL.SUBJECTS = {
-    english: { emo: '🔤', c: 'c1', name: { en: 'English', hi: 'अंग्रेज़ी' }, book: { bal: 'Jadui Pitara', c1: 'Mridang', c2: 'Mridang', c3: 'Santoor' } },
-    hindi: { emo: 'अ', c: 'c2', name: { en: 'Hindi', hi: 'हिंदी' }, book: { bal: 'Jadui Pitara', c1: 'Sarangi · सारंगी', c2: 'Sarangi · सारंगी', c3: 'Veena · वीणा' } },
-    maths: { emo: '🔢', c: 'c3', name: { en: 'Maths', hi: 'गणित' }, book: { bal: 'Jadui Pitara', c1: 'Joyful Mathematics', c2: 'Joyful Mathematics', c3: 'Maths Mela' } },
-    evs: { emo: '🌏', c: 'c4', name: { en: 'My World', hi: 'मेरी दुनिया' }, book: { bal: 'Jadui Pitara', c1: 'themes from Mridang & Sarangi', c2: 'themes from Mridang & Sarangi', c3: 'Our Wondrous World' } },
+    english: { emo: '🔤', c: 'c1', name: { en: 'English', hi: 'अंग्रेज़ी' }, book: { bal: 'Jadui Pitara', c1: 'Mridang', c2: 'Mridang', c3: 'Santoor', c4: 'Santoor 4', c5: 'Santoor 5' } },
+    hindi: { emo: 'अ', c: 'c2', name: { en: 'Hindi', hi: 'हिंदी' }, book: { bal: 'Jadui Pitara', c1: 'Sarangi · सारंगी', c2: 'Sarangi · सारंगी', c3: 'Veena · वीणा', c4: 'Veena 4 · वीणा', c5: 'Veena 5 · वीणा' } },
+    maths: { emo: '🔢', c: 'c3', name: { en: 'Maths', hi: 'गणित' }, book: { bal: 'Jadui Pitara', c1: 'Joyful Mathematics', c2: 'Joyful Mathematics', c3: 'Maths Mela', c4: 'Maths Mela 4', c5: 'Maths Mela 5' } },
+    evs: { emo: '🌏', c: 'c4', name: { en: 'My World', hi: 'मेरी दुनिया' }, book: { bal: 'Jadui Pitara', c1: 'themes from Mridang & Sarangi', c2: 'themes from Mridang & Sarangi', c3: 'Our Wondrous World', c4: 'Our Wondrous World 4', c5: 'Our Wondrous World 5' } },
+    science: { emo: '🔬', c: 'c5', name: { en: 'Science', hi: 'विज्ञान' }, book: {} },
+    social: { emo: '🗺️', c: 'c6', name: { en: 'Social Studies', hi: 'सामाजिक अध्ययन' }, book: {} },
+    computers: { emo: '💻', c: 'c2', name: { en: 'Computers', hi: 'कंप्यूटर' }, book: {} },
+  };
+  /** Subjects a class studies on a board. Class 4–5: CBSE keeps EVS (Our Wondrous World); ICSE and International split it into Science + Social Studies. */
+  SYL.subjectsFor = (cls, board = 'cbse') => {
+    if (cls !== 'c4' && cls !== 'c5') { return ['english', 'hindi', 'maths', 'evs']; }
+    return board === 'cbse' ? ['english', 'hindi', 'maths', 'evs', 'computers'] : ['english', 'hindi', 'maths', 'science', 'social', 'computers'];
   };
   SYL.BOARDS = [
     { id: 'cbse', name: { en: 'CBSE / NCERT', hi: 'सीबीएसई / एनसीईआरटी' } },
@@ -22,14 +32,14 @@
     { id: 'intl', name: { en: 'International (Cambridge-style)', hi: 'इंटरनेशनल (कैम्ब्रिज जैसा)' } },
   ];
   SYL.classLabel = (cls, board) => (board === 'intl' && cls !== 'bal' ? { en: `Stage ${cls.slice(1)}`, hi: `स्टेज ${cls.slice(1)}` } : SYL.CLASSES.find((x) => x.id === cls).name);
-  SYL.bookFor = (sub, cls, board) => (cls === 'bal' ? 'Jadui Pitara (play-based)' : board === 'icse' ? { english: 'ICSE English: grammar & language', hindi: 'ICSE हिंदी व्याकरण', maths: 'ICSE Mathematics themes', evs: 'ICSE EVS themes' }[sub] : board === 'intl' ? { english: 'Cambridge Primary English–style', hindi: 'Hindi (second language)', maths: 'Cambridge Primary Maths–style', evs: 'Cambridge Primary Science–style' }[sub] : SYL.SUBJECTS[sub].book[cls]);
+  SYL.bookFor = (sub, cls, board) => (cls === 'bal' ? 'Jadui Pitara (play-based)' : sub === 'computers' ? (board === 'intl' ? 'Computing & digital literacy' : 'Computer studies') : board === 'icse' ? { english: 'ICSE English: grammar & language', hindi: 'ICSE हिंदी व्याकरण', maths: 'ICSE Mathematics themes', evs: 'ICSE EVS themes', science: 'ICSE Science themes', social: 'ICSE History, Civics & Geography' }[sub] : board === 'intl' ? { english: 'Cambridge Primary English–style', hindi: 'Hindi (second language)', maths: 'Cambridge Primary Maths–style', evs: 'Cambridge Primary Science–style', science: 'Cambridge Primary Science–style', social: 'Global Perspectives & Humanities–style' }[sub] : SYL.SUBJECTS[sub].book[cls] || '');
   /** chapters for a class/subject/board. Pre-primary is shared; International Hindi uses the ICSE Hindi course. */
   SYL.chaptersFor = (cls, sub, board = 'cbse') => {
     const b = cls === 'bal' ? 'cbse' : board === 'intl' && sub === 'hindi' ? 'icse' : board;
     return SYL.chapters.filter((c) => c.cls === cls && c.sub === sub && c.board === b);
   };
-  SYL.classForAge = (age) => (age <= 5 ? 'bal' : age === 6 ? 'c1' : age === 7 ? 'c2' : 'c3');
-  const LV = { bal: 1, c1: 2, c2: 2, c3: 3 };
+  SYL.classForAge = (age) => (age <= 5 ? 'bal' : age === 6 ? 'c1' : age === 7 ? 'c2' : age === 8 ? 'c3' : age === 9 ? 'c4' : 'c5');
+  const LV = SYL.LV = { bal: 1, c1: 2, c2: 2, c3: 3, c4: 4, c5: 4 };
 
   /** Register a chapter. acts are activity objects (type + payload). */
   SYL.ch = (cls, sub, no, emoji, title, acts, extra = {}) => {
@@ -44,7 +54,7 @@
     SYL.chapters.push(ch);
     return ch;
   };
-  const SKILL = { english: ['vocabulary', 'reading', 'listening'], hindi: ['reading', 'vocabulary', 'listening'], maths: ['numbers', 'calculation', 'logic'], evs: ['science', 'knowledge'] };
+  const SKILL = { english: ['vocabulary', 'reading', 'listening'], hindi: ['reading', 'vocabulary', 'listening'], maths: ['numbers', 'calculation', 'logic'], evs: ['science', 'knowledge'], science: ['science', 'knowledge', 'logic'], social: ['knowledge', 'values'], computers: ['logic', 'knowledge'] };
 
   // ---------------------------------------------------------------- builders
   const T = (en, hi) => ({ en, hi });

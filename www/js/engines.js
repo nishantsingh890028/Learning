@@ -338,7 +338,7 @@
     });
     // ---- v3.5: songs keep their rhythm. Real melodies (act.melody) play note by note with karaoke lines;
     //      rhymes are chanted ON a steady beat, one line per bar, like a teacher leading the class.
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const wait = (ms) => { const ep = K.rid; return new Promise((r) => setTimeout(() => { if (K.rid === ep) { r(); } }, ms)); };
     const bar = (k, secs) => { const el = q(`[data-l="${k}"] .pbar`); if (!el) { return; } el.style.transition = 'none'; el.style.width = '0%'; requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transition = `width ${secs}s linear`; el.style.width = '100%'; })); };
     const busy = (on) => qa('[data-sing],[data-repeat]').forEach((b) => { b.disabled = on; });
     const lineSecs = (k) => (act.melody[k] || []).reduce((s2, [, u]) => s2 + u, 0) * (act.unit || 0.26);
@@ -673,7 +673,7 @@
   /** Run an activity. back = where the back button / home returns. */
   K.run = (act, back) => {
     K.closeModal();
-    const fn = ENGINES[act.type];
+    const fn = ENGINES[act.type]; K.curAct = act;
     if (!fn) { console.error('unknown activity type', act.type); return; }
     fn(act, back || K.home);
   };

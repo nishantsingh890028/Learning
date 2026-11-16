@@ -6,7 +6,7 @@
   const E = K.ENGINES;
   const lbl = (o) => (o == null ? '' : typeof o === 'object' ? (K.both() && o.en && o.hi && o.en !== o.hi ? `${esc(o.en)}<small>${esc(o.hi)}</small>` : esc(tx(o))) : esc(o));
   const isEmo = (v) => typeof v === 'string' && /^[\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}\u200d\ufe0f\s]+$/u.test(v);
-  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const wait = (ms) => { const ep = K.rid; return new Promise((r) => setTimeout(() => { if (K.rid === ep) { r(); } }, ms)); };
   const alive = (screen) => K.current === 'act' && document.querySelector(`[data-screen="${screen}"]`);
   K.wait = wait;
 

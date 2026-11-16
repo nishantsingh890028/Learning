@@ -4,7 +4,7 @@
   'use strict';
   const { t, tx, esc, pick, rand, shuffle, say, sayT, q, qa } = K;
   const E = K.ENGINES; const { frame, shake, wait, alive } = K.G;
-  const PL = [['ones', 'इकाई'], ['tens', 'दहाई'], ['hundreds', 'सैकड़े']];
+  const PL = [['ones', 'इकाई'], ['tens', 'दहाई'], ['hundreds', 'सैकड़े'], ['thousands', 'हज़ार']];
 
   // ---------------------------------------------------------------- abacus widget
   /** Build an abacus in el with `rods` rods. Returns API: get(), set(n), on(fn), lock(bool), hl(rod) */
@@ -13,7 +13,7 @@
     el.innerHTML = `<div class="abacus" style="--rods:${rods}"><div class="ab-frame">${st.map((_, i) => { const k = rods - 1 - i; return `<div class="rod" data-rod="${k}"><div class="stick"></div>
         <button class="bead h" data-h="${k}" aria-label="5"></button><div class="beam"></div>
         ${[0, 1, 2, 3].map((j) => `<button class="bead e" data-e="${k}" data-j="${j}" aria-label="1"></button>`).join('')}</div>`; }).join('')}</div>
-      ${labels ? `<div class="ab-labels">${st.map((_, i) => `<span>${t(['O', 'T', 'H'][rods - 1 - i], ['इ', 'द', 'सै'][rods - 1 - i])}</span>`).join('')}</div>` : ''}
+      ${labels ? `<div class="ab-labels">${st.map((_, i) => `<span>${t(['O', 'T', 'H', 'Th'][rods - 1 - i], ['इ', 'द', 'सै', 'ह'][rods - 1 - i])}</span>`).join('')}</div>` : ''}
       ${digits ? `<div class="ab-digits">${st.map((_, i) => `<span data-dg="${rods - 1 - i}">0</span>`).join('')}</div>` : ''}</div>`;
     const draw = () => {
       st.forEach((s, k) => {
@@ -77,27 +77,136 @@
     return [rods > 1 ? 21 : 2, rods > 1 ? 13 : 1];
   }
 
-  /** Demo: Golu solves a ± b on the abacus, step by step */
+  /** numbered step list shown beside the abacus; returns mark(i) to highlight step i */
+  function stepList(box, steps, shorts) {
+    box.innerHTML = `<ol class="ab-steps ${shorts ? 'practice' : ''}">${steps.map((s, i) => `<li data-st="${i}">${shorts && shorts[i] ? `<b>${esc(tx(shorts[i]))}</b><span class="full">${esc(tx(s))}</span>` : esc(tx(s))}</li>`).join('')}</ol>`;
+    return (i) => box.querySelectorAll('[data-st]').forEach((li) => { const k = Number(li.dataset.st); li.classList.toggle('now', k === i); li.classList.toggle('done', k < i); if (k === i) { try { li.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch { /* old WebView */ } } });
+  }
+  /** Demo: Golu solves a ± b on the abacus, step by step, with every step written down */
   async function demo(api, a, b, sign, rods, box) {
     api.lock(true); api.set(0);
-    const say1 = async (o) => { box.innerHTML = `<div class="step-say">${esc(tx(o))}</div>`; await sayT(o); await wait(250); };
-    await say1({ en: `Watch! First we put ${a} on the abacus.`, hi: `देखो! पहले गिनतारे पर ${a} रखते हैं।` });
+    const ans = a + sign * b; const pl = plan(a, b, sign, rods);
+    const steps = [{ en: `Put ${a} on the abacus.`, hi: `गिनतारे पर ${a} रखो।` }, ...pl.map((x) => x.say), { en: `Read the answer: ${ans}.`, hi: `उत्तर पढ़ो: ${ans}।` }];
+    const mark = stepList(box, steps);
+    mark(0); await sayT({ en: `Watch! First we put ${a} on the abacus.`, hi: `देखो! पहले गिनतारे पर ${a} रखते हैं।` });
     for (let k = rods - 1; k >= 0; k--) { const d = Math.floor(a / 10 ** k) % 10; if (d) { api.hl(k); api.setDigit(k, d); K.sfx.pop(); await wait(500); } }
     api.hl(-1);
-    await say1({ en: `Now ${sign > 0 ? 'add' : 'take away'} ${b}. We start from the left.`, hi: `अब ${b} ${sign > 0 ? 'जोड़ो' : 'घटाओ'}। बाईं ओर से शुरू करते हैं।` });
-    for (const s of plan(a, b, sign, rods)) {
+    for (let i = 0; i < pl.length; i++) {
       if (!alive('abacus')) { return; }
-      api.hl(s.rod); box.innerHTML = `<div class="step-say">${esc(tx(s.say))}</div>`; await sayT(s.say);
+      const s = pl[i]; mark(i + 1); api.hl(s.rod); await sayT(s.say);
       s.after.forEach((d, k) => api.setDigit(k, d)); K.sfx.pop(); await wait(700);
     }
-    api.hl(-1); const ans = a + sign * b;
-    await say1({ en: `The abacus shows ${ans}. So ${a} ${sign > 0 ? 'plus' : 'minus'} ${b} is ${ans}!`, hi: `गिनतारा ${ans} दिखा रहा है। तो ${a} ${sign > 0 ? 'जोड़' : 'घटा'} ${b} बराबर ${ans}!` });
+    api.hl(-1); mark(steps.length - 1);
+    await sayT({ en: `The abacus shows ${ans}. So ${a} ${sign > 0 ? 'plus' : 'minus'} ${b} is ${ans}!`, hi: `गिनतारा ${ans} दिखा रहा है। तो ${a} ${sign > 0 ? 'जोड़' : 'घटा'} ${b} बराबर ${ans}!` });
+    await wait(250);
     api.lock(false);
+  }
+
+  // ================================================================ CARRY FORWARD / BORROW (column method on the abacus)
+  /** written sum with a carry row; done = number of columns finished (from the right) */
+  function written(a, b, sign, rods, done, carries) {
+    const ans = a + sign * b; const A = String(a).padStart(rods, ' '); const Bs = String(b).padStart(rods, ' '); const S = String(ans).padStart(rods, ' ');
+    const cell = (ch, k, cls = '') => `<span class="wc ${k === done ? 'hl' : ''} ${cls}">${ch === ' ' ? '' : ch}</span>`;
+    const row = (str, f = (ch) => ch) => str.split('').map((ch, i) => cell(f(ch, rods - 1 - i), rods - 1 - i)).join('');
+    return `<div class="wsum" style="--w:${rods + 1}">
+      <div class="wrow carry"><span class="wc"></span>${Array.from({ length: rods }, (_, i) => { const k = rods - 1 - i; return `<span class="wc cy">${carries[k] ? (sign > 0 ? `+${carries[k]}` : '−1') : ''}</span>`; }).join('')}</div>
+      <div class="wrow"><span class="wc"></span>${row(A)}</div>
+      <div class="wrow"><span class="wc op">${sign > 0 ? '+' : '−'}</span>${row(Bs)}</div>
+      <div class="wrow line"><span class="wc"></span>${row(S, (ch, k) => (k < done ? ch : ''))}</div></div>`;
+  }
+  /** steps for column addition/subtraction, right to left */
+  function colPlan(a, b, sign, rods) {
+    const out = []; let carry = 0; const carries = {};
+    for (let k = 0; k < rods; k++) {
+      const da = Math.floor(a / 10 ** k) % 10; const db = Math.floor(b / 10 ** k) % 10; const P = PL[k]; const N = PL[k + 1];
+      if (sign > 0) {
+        const s = da + db + carry; const fromC = carry ? ` + ${carry} (${t('carried', 'हासिल')})` : '';
+        if (!db && !carry) { out.push({ k, say: { en: `${P[0]}: nothing to add. The ${P[0]} rod stays ${da}.`, hi: `${P[1]}: कुछ नहीं जोड़ना। ${P[1]} की छड़ ${da} ही रहेगी।` }, carries: { ...carries } }); continue; }
+        if (s >= 10 && N) {
+          carries[k + 1] = 1;
+          out.push({ k, say: { en: `${P[0]}: ${da} + ${db}${fromC} = ${s}. That is 1 ten and ${s - 10}. Leave ${s - 10} on the ${P[0]} rod and CARRY 1 to the ${N[0]} rod.`, hi: `${P[1]}: ${da} + ${db}${fromC} = ${s}। यानी 1 दहाई और ${s - 10}। ${P[1]} की छड़ पर ${s - 10} छोड़ो और 1 हासिल ${N[1]} की छड़ पर ले जाओ।` }, carries: { ...carries } });
+          carry = 1;
+        } else {
+          out.push({ k, say: { en: `${P[0]}: ${da} + ${db}${fromC} = ${s}. Show ${s} on the ${P[0]} rod. No carry.`, hi: `${P[1]}: ${da} + ${db}${fromC} = ${s}। ${P[1]} की छड़ पर ${s} दिखाओ। कोई हासिल नहीं।` }, carries: { ...carries } });
+          carry = 0;
+        }
+      } else {
+        const top = da - carry; const bor = carry ? ` (${t('after lending 1', '1 उधार देने के बाद')})` : '';
+        if (!db && !carry) { out.push({ k, say: { en: `${P[0]}: nothing to take away. The ${P[0]} rod stays ${da}.`, hi: `${P[1]}: कुछ नहीं घटाना। ${P[1]} की छड़ ${da} ही रहेगी।` }, carries: { ...carries } }); continue; }
+        if (top < db) {
+          carries[k + 1] = 1;
+          out.push({ k, say: { en: `${P[0]}: ${top}${bor} is smaller than ${db}. BORROW 1 from the ${N[0]} rod: now ${top + 10} − ${db} = ${top + 10 - db}. Show ${top + 10 - db} on the ${P[0]} rod and take 1 bead off the ${N[0]} rod.`, hi: `${P[1]}: ${top}${bor}, ${db} से छोटा है। ${N[1]} की छड़ से 1 उधार लो: अब ${top + 10} − ${db} = ${top + 10 - db}। ${P[1]} पर ${top + 10 - db} दिखाओ और ${N[1]} की छड़ से 1 मोती हटाओ।` }, carries: { ...carries } });
+          carry = 1;
+        } else {
+          out.push({ k, say: { en: `${P[0]}: ${top}${bor} − ${db} = ${top - db}. Show ${top - db} on the ${P[0]} rod.`, hi: `${P[1]}: ${top}${bor} − ${db} = ${top - db}। ${P[1]} की छड़ पर ${top - db} दिखाओ।` }, carries: { ...carries } });
+          carry = 0;
+        }
+      }
+    }
+    return out;
+  }
+  function colProblem(sign, rods) {
+    for (let i = 0; i < 300; i++) {
+      const a = rand(10 ** (rods - 1), 10 ** rods - 1); const b = rand(10 ** (rods - 2), (sign > 0 ? 10 ** rods - 1 - a : a - 1));
+      if (b < 1) { continue; } const res = a + sign * b; if (res < 0 || res >= 10 ** rods) { continue; }
+      const n = colPlan(a, b, sign, rods).filter((x) => /CARRY|BORROW/.test(x.say.en)).length;
+      if (n >= Math.min(2, rods - 1)) { return [a, b]; }
+    }
+    return sign > 0 ? [478, 365].map((x) => x % 10 ** rods) : [512, 278].map((x) => x % 10 ** rods);
+  }
+  function colMode(act, back) {
+    const rods = act.rods || 2; const sign = act.mode === 'borrow' ? -1 : 1; const total = act.rounds || 4; let r = 0; let good = 0;
+    const round = () => {
+      const [a, b] = colProblem(sign, rods); const ans = a + sign * b; const pl = colPlan(a, b, sign, rods); const showDemo = r === 0 && !act.noDemo;
+      K._t = { ans };
+      frame(act, back, { id: 'abacus', r, total, prompt: { en: `${a} ${sign > 0 ? '+' : '−'} ${b} = ?  ${showDemo ? 'Watch Golu, column by column.' : 'Solve it column by column.'}`, hi: `${a} ${sign > 0 ? '+' : '−'} ${b} = ?  ${showDemo ? 'गोलू को देखो, एक-एक कॉलम।' : 'एक-एक कॉलम करके हल करो।'}` },
+        body: `<div class="ab-col"><div data-ab></div><div data-ws></div></div><div data-box class="ab-box"></div><div class="nav" data-nav></div>` });
+      const api = K._ab = abacus(q('[data-ab]'), rods, {});
+      const ws = q('[data-ws]'); const box = q('[data-box]'); const nav = q('[data-nav]');
+      const steps = [{ en: `Put ${a} on the abacus.`, hi: `गिनतारे पर ${a} रखो।` }, ...pl.map((x) => x.say), { en: `Answer: ${ans}`, hi: `उत्तर: ${ans}` }];
+      const shorts = showDemo ? null : [null, ...pl.map((x) => ({ en: `${PL[x.k][0][0].toUpperCase()}${PL[x.k][0].slice(1)} column`, hi: `${PL[x.k][1]} का कॉलम` })), { en: 'Read the answer', hi: 'उत्तर पढ़ो' }];
+      const mark = stepList(box, steps, shorts);
+      const draw = (done, carries = {}) => { ws.innerHTML = written(a, b, sign, rods, done, carries); };
+      draw(-1); api.set(a); mark(0);
+      const target = (i) => a + sign * (b % 10 ** (i + 1));   // abacus value after column i
+      if (showDemo) {
+        api.lock(true);
+        (async () => {
+          await sayT({ en: `${a} is on the abacus. Now we ${sign > 0 ? 'add' : 'take away'} ${b}, starting with the ones – just like in your notebook.`, hi: `गिनतारे पर ${a} है। अब ${b} ${sign > 0 ? 'जोड़ेंगे' : 'घटाएँगे'}, इकाई से शुरू करके – बिल्कुल कॉपी की तरह।` });
+          for (let i = 0; i < pl.length; i++) {
+            if (!alive('abacus')) { return; }
+            mark(i + 1); api.hl(pl[i].k); draw(pl[i].k, pl[i].carries); await sayT(pl[i].say);
+            api.set(target(i)); K.sfx.pop(); draw(pl[i].k + 1, pl[i].carries); await wait(650);
+          }
+          api.hl(-1); mark(steps.length - 1); draw(rods, pl[pl.length - 1].carries);
+          await sayT({ en: `The abacus and the notebook both show ${ans}! Now it is your turn.`, hi: `गिनतारा और कॉपी दोनों ${ans} दिखा रहे हैं! अब तुम्हारी बारी।` });
+          good++; r++; if (r >= total) { K.finish(act, 3, back); } else { round(); }
+        })();
+        return;
+      }
+      // guided practice: the child does one column at a time, Golu checks each step
+      let i = 0; let tries = 0; let clean = true;
+      const ask = () => { K._t = { ans: target(i) }; mark(i + 1); api.hl(pl[i].k); draw(pl[i].k, i ? pl[i - 1].carries : {}); sayT(pl[i].say.en.includes('nothing to') ? pl[i].say : { en: `${PL[pl[i].k][0]} column. Work it out and move the beads.`, hi: `${PL[pl[i].k][1]} का कॉलम। हल करो और मोती खिसकाओ।` }); };
+      nav.innerHTML = `<button class="btn ghost" data-hint>💡 ${t('Hint', 'संकेत')}</button><button class="btn green" data-ck>✔ ${t('Check this step', 'यह कदम जाँचो')}</button>`;
+      q('[data-hint]').onclick = () => { K.sfx.tap(); clean = false; box.querySelector('.now')?.classList.add('open'); sayT(pl[i].say); };
+      q('[data-ck]').onclick = async () => {
+        if (api.get() === target(i)) {
+          K.sfx.good(); draw(pl[i].k + 1, pl[i].carries); tries = 0; i++;
+          if (i >= pl.length) { api.hl(-1); mark(steps.length - 1); if (clean) { good++; } await K.praise(); await sayT({ en: `${a} ${sign > 0 ? 'plus' : 'minus'} ${b} is ${ans}!`, hi: `${a} ${sign > 0 ? 'जोड़' : 'घटा'} ${b} बराबर ${ans}!` }); r++; if (r >= total) { K.finish(act, Math.max(1, Math.round((good / total) * 5)), back); } else { round(); } return; }
+          ask(); return;
+        }
+        tries++; clean = false; K.tryAgain();
+        if (tries >= 2) { box.querySelector('.now')?.classList.add('open'); await sayT(pl[i].say); api.set(target(i)); draw(pl[i].k + 1, pl[i].carries); K.sfx.pop(); tries = 0; i++; if (i >= pl.length) { api.hl(-1); r++; if (r >= total) { K.finish(act, Math.max(1, Math.round((good / total) * 5)), back); } else { round(); } } else { ask(); } }
+      };
+      ask();
+    };
+    round();
   }
 
   // ================================================================ ABACUS engine
   // act.mode: 'intro' | 'set' | 'read' | 'add' | 'sub';  act.rods: 1–3;  act.rule: 'direct'|'small'|'big'|'any'
   E.abacus = (act, back) => {
+    if (act.mode === 'carry' || act.mode === 'borrow') { colMode(act, back); return; }
     const rods = act.rods || 1; const mode = act.mode; const total = act.rounds || 5; let r = 0; let good = 0; let demoed = !!act.noDemo;
     const shell = (prompt, extra = '') => {
       frame(act, back, { id: 'abacus', r, total: mode === 'intro' ? 1 : total, prompt, body: `<div data-ab></div><div data-box class="ab-box"></div>${extra}` });

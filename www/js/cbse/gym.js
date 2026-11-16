@@ -7,7 +7,7 @@
 
   // ---------------------------------------------------------------- MATHS GYM
   const OPN = { add: ['Addition', 'जोड़'], sub: ['Subtraction', 'घटाव'], mul: ['Multiplication', 'गुणा'], div: ['Division', 'भाग'], mix: ['Mixed practice', 'मिला-जुला अभ्यास'] };
-  const LVN = [null, ['with pictures', 'चित्रों से'], ['up to 20', '20 तक'], ['2-digit', 'दो अंक'], ['2-digit, carry/borrow', 'दो अंक, हासिल/उधार'], ['3-digit', 'तीन अंक']];
+  const LVN = [null, ['with pictures', 'चित्रों से'], ['up to 20', '20 तक'], ['2-digit', 'दो अंक'], ['2-digit, carry/borrow', 'दो अंक, हासिल/उधार'], ['3-digit', 'तीन अंक'], ['4-digit, carry/borrow', 'चार अंक, हासिल/उधार']];
   const MLV = [null, ['groups of 2, 5, 10', '2, 5, 10 के समूह'], ['tables to 5', '5 तक पहाड़े'], ['tables to 10', '10 तक पहाड़े'], ['2-digit × 1-digit', 'दो अंक × एक अंक'], ['3-digit × 1-digit', 'तीन अंक × एक अंक']];
   const DLV = [null, ['sharing', 'बाँटना'], ['facts to 5', '5 तक तथ्य'], ['facts to 10', '10 तक तथ्य'], ['long division 2-digit', 'लंबा भाग, दो अंक'], ['long division 3-digit', 'लंबा भाग, तीन अंक']];
   const lab = (op, lv, levels) => { const nm = op === 'mul' ? MLV[lv] : op === 'div' ? DLV[lv] : LVN[lv]; L(`gym-${op}${lv}`, 'gym', levels, 'mathlab', T(`${OPN[op][0]}: ${nm ? nm[0] : `level ${lv}`}`, `${OPN[op][1]}: ${nm ? nm[1] : `स्तर ${lv}`}`), { op, level: lv, skills: SK.gym }); };
@@ -28,6 +28,7 @@
   lab('mul', 3, [2, 3]); lab('div', 3, [3]); lab('add', 5, [3]); lab('sub', 5, [3]); lab('mul', 4, [3]); lab('div', 4, [3]); lab('mul', 5, [3]); lab('div', 5, [3]); lab('mix', 3, [3]); lab('mix', 4, [3]);
   L('gym-tbl-pick', 'gym', [1, 2, 3], 'tables', T('Tables book: 1 to 20', 'पहाड़ों की किताब: 1 से 20'), { pick: true, from: 1, to: 20, skills: SK.gym });
   L('gym-skipdown', 'gym', [3], 'countlab', T('Skip count backwards', 'उल्टी उछल गिनती'), { mode: 'skip', down: true, max: 200, skills: SK.gym });
+  lab('add', 6, [4]); lab('sub', 6, [4]);
   L('gym-near1000', 'gym', [3], 'countlab', T('Before, after, between (to 1000)', 'पहले, बाद, बीच में (1000 तक)'), { mode: 'near', max: 999, rounds: 6, skills: SK.gym });
 
   // ---------------------------------------------------------------- ABACUS COURSE
@@ -48,6 +49,14 @@
   AB('14-add3', [3], T('14. Three rods: up to 999', '14. तीन छड़ें: 999 तक'), { mode: 'add', rods: 3, rule: 'any' });
   AB('15-sub3', [3], T('15. Take away on three rods', '15. तीन छड़ों पर घटाव'), { mode: 'sub', rods: 3, rule: 'any' });
   AB('16-flash', [3], T('16. Mental abacus: read without counting', '16. मन का गिनतारा: बिना गिने पढ़ो'), { mode: 'read', rods: 3, rounds: 6 });
+  AB('17-carry2', [2, 3, 4], T('17. Carry forward: ones to tens', '17. हासिल: इकाई से दहाई'), { mode: 'carry', rods: 2 });
+  AB('18-borrow2', [2, 3, 4], T('18. Borrow: tens to ones', '18. उधार: दहाई से इकाई'), { mode: 'borrow', rods: 2 });
+  AB('19-carry3', [3, 4], T('19. Carry forward on 3 rods', '19. तीन छड़ों पर हासिल'), { mode: 'carry', rods: 3 });
+  AB('20-borrow3', [3, 4], T('20. Borrow on 3 rods', '20. तीन छड़ों पर उधार'), { mode: 'borrow', rods: 3 });
+  AB('21-set4', [4], T('21. Four rods: thousands', '21. चार छड़ें: हज़ार'), { mode: 'set', rods: 4 });
+  AB('22-carry4', [4], T('22. Carry forward to thousands', '22. हज़ार तक हासिल'), { mode: 'carry', rods: 4 });
+  AB('23-borrow4', [4], T('23. Borrow across 4 rods', '23. चार छड़ों पर उधार'), { mode: 'borrow', rods: 4 });
+  AB('24-add4', [4], T('24. Speed abacus: 4-digit sums', '24. तेज़ गिनतारा: चार अंकों का जोड़'), { mode: 'add', rods: 4, rule: 'any' });
 
   // ---------------------------------------------------------------- THINKING PUZZLES
   const PZ = (id, levels, type, title, extra) => L(`pz-${id}`, 'puzzles', levels, type, title, { skills: SK.pz, ...extra });

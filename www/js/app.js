@@ -5,7 +5,8 @@
   const SYL = window.SYL; const CUR = window.CUR;
 
   // ---------------------------------------------------------------- worlds
-  const SUBJECTS = ['english', 'hindi', 'maths', 'evs'];
+  const ALL_SUBJECTS = ['english', 'hindi', 'maths', 'evs', 'science', 'social', 'computers'];
+  const subjectsOf = (c = K.child()) => SYL.subjectsFor(K.cls(c), (c && c.board) || 'cbse');
   const FUN = [
     { id: 'gym', emo: '🏋️', c: 'c3', g: 'practice', name: { en: 'Maths Gym', hi: 'गणित जिम' } },
     { id: 'abacus', emo: '🧮', c: 'c1', g: 'practice', name: { en: 'Abacus', hi: 'अबेकस' } },
@@ -24,10 +25,13 @@
     { id: 'stories', emo: '📖', c: 'c10', g: 'fun', name: { en: 'Stories', hi: 'कहानियाँ' } },
   ];
   const GROUPS = [['practice', '🎯', 'Practice zone', 'अभ्यास ज़ोन'], ['values', '🌱', 'Good values', 'अच्छे संस्कार'], ['aware', '🧭', 'Know your world', 'अपनी दुनिया जानो'], ['fun', '🎪', 'Fun zone', 'मस्ती ज़ोन']];
-  const WORLDS = [...SUBJECTS.map((id) => ({ id, ...SYL.SUBJECTS[id] })), ...FUN];
+  const WORLDS = [...ALL_SUBJECTS.map((id) => ({ id, ...SYL.SUBJECTS[id] })), ...FUN];
   K.WORLDS = WORLDS;
   const byId = (id) => CUR.find((a) => a.id === id);
-  const worldOf = (id) => WORLDS.find((w) => w.id === (id === 'science' ? 'evs' : id)) || FUN[0];
+  K.byId = byId;
+  // Senior Stars (Class 4–5) also get the Class-3 practice, values and awareness content; baby rhymes and picture tales stay with the little ones.
+  CUR.forEach((a) => { if (!a.chapter && a.levels.includes(3) && !a.levels.includes(4) && !a.noSenior && !(['poems', 'stories'].includes(a.world) && a.levels.includes(1))) { a.levels.push(4); } });
+  const worldOf = (id) => WORLDS.find((w) => w.id === id) || FUN[0];
   const locked = (a) => !a.free && !K.state.full && !K.CONFIG.unlockAll;
   const AVATARS = ['🦁', '🐯', '🐼', '🦊', '🐰', '🐨', '🦄', '🐸', '🐵', '🦋', '🐬', '🦚'];
   const SKILL_NAMES = {
@@ -40,10 +44,10 @@
   const clsInfo = (c = K.child()) => SYL.CLASSES.find((x) => x.id === K.cls(c));
   const boardOf = (c = K.child()) => (c && c.board) || 'cbse';
   const chaptersOf = (cls, sub, c = K.child()) => SYL.chaptersFor(cls, sub, boardOf(c));
-  const subName = (sid, c = K.child()) => (sid === 'evs' && boardOf(c) === 'intl' ? { en: 'Science', hi: 'विज्ञान' } : SYL.SUBJECTS[sid].name);
+  const subName = (sid, c = K.child()) => (sid === 'evs' && boardOf(c) === 'intl' ? { en: 'Science', hi: 'विज्ञान' } : sid === 'evs' && K.level(c) >= 4 ? { en: 'EVS – Our World', hi: 'पर्यावरण अध्ययन' } : SYL.SUBJECTS[sid].name);
   const clsName = (cls, c = K.child()) => SYL.classLabel(cls, boardOf(c));
   const chDone = (ch, c = K.child()) => ch.acts.filter((a) => c.counts[a.id]).length;
-  const extrasOf = (sub, lv) => CUR.filter((a) => !a.chapter && (a.world === sub || (sub === 'evs' && a.world === 'science')) && a.levels.includes(lv));
+  const extrasOf = (sub, lv) => CUR.filter((a) => !a.chapter && (a.world === sub || (a.world === 'science' && (sub === 'evs' || sub === 'science'))) && a.levels.includes(lv));
 
   // ---------------------------------------------------------------- daily plan: follows the syllabus in order
   function nextInSubject(sub, c, avoid) {
@@ -55,6 +59,7 @@
     const min = Math.min(...pool.map((a) => c.counts[a.id] || 0));
     return pick(pool.filter((a) => (c.counts[a.id] || 0) === min && !avoid.has(a.id))) || pool[0];
   }
+  K.nextLesson = (sub, c, avoid = []) => nextInSubject(sub, c, new Set(avoid));
   function nextFun(world, c, avoid) {
     const lv = K.level(c);
     let pool = CUR.filter((a) => a.world === world && a.levels.includes(lv) && !locked(a));
@@ -76,7 +81,7 @@
     const prevKeys = Object.keys(c.days).sort().filter((k) => k < day);
     const avoid = new Set(prevKeys.length ? c.days[prevKeys[prevKeys.length - 1]].plan : []);
     const lang = c.medium === 'en' ? (n % 3 === 2 ? 'hindi' : 'english') : c.medium === 'hi' ? (n % 3 === 2 ? 'english' : 'hindi') : (n % 2 ? 'hindi' : 'english');
-    const plan = [nextInSubject(lang, c, avoid), nextInSubject('maths', c, avoid), nextCourse(n % 2 ? 'abacus' : 'gym', c, avoid), nextInSubject('evs', c, avoid),
+    const plan = [nextInSubject(lang, c, avoid), nextInSubject('maths', c, avoid), nextCourse(n % 2 ? 'abacus' : 'gym', c, avoid), nextInSubject(subjectsOf(c).includes('evs') ? (K.level(c) >= 4 && n % 4 === 3 ? 'computers' : 'evs') : ['science', 'social', 'science', 'computers'][n % 4], c, avoid),
       nextFun(['kindness', 'sanskar', 'earth', 'choices', 'outside', 'play'][n % 6], c, avoid), nextFun(['stories', 'gk', 'creative', 'india', 'stories', 'thinking', 'poems', 'gk'][n % 8], c, avoid)];
     d.plan = plan.filter(Boolean).map((a) => a.id);
     K.save();
@@ -107,7 +112,7 @@
     K.nextAction = null; K.stopMusic(); K.stopVoice();
     const c = K.child();
     if (!c) { welcome(); return; }
-    K.current = 'home';
+    K.current = 'home'; K.rid = (K.rid || 0) + 1;
     const d = todayPlan(); const doneN = d.plan.filter((id) => d.done.includes(id)).length; const cl = clsInfo(c);
     const nextIdx = d.plan.findIndex((id) => !d.done.includes(id));
     const app = document.getElementById('app');
@@ -118,19 +123,21 @@
       <div class="screen home">
         <div class="hero"><button class="mascot hero-m" data-mascot>${K.MASCOT}</button><div class="bubble show hero-b">${esc(greeting(c, doneN, d.plan.length))}</div></div>
         <div class="journey">
-          <div class="journey-head"><div><div class="j-title">${t("Today's Journey", 'आज की यात्रा')}</div><div class="j-sub">🔥 ${c.streak || 0} ${t('day streak', 'दिन लगातार')} · ${doneN}/${d.plan.length} ${t('done', 'पूरे')}</div></div>
+          <div class="journey-head"><div><div class="j-title">🎒 ${t('Classwork', 'कक्षा-कार्य')}</div><div class="j-sub">${t("Today's journey", 'आज की यात्रा')} · 🔥 ${c.streak || 0} ${t('day streak', 'दिन लगातार')} · ${doneN}/${d.plan.length} ${t('done', 'पूरे')}</div></div>
             <div class="ring-prog" style="--p:${d.plan.length ? doneN / d.plan.length : 0}"><span>${doneN}/${d.plan.length}</span></div></div>
           <div class="path">${d.plan.map((id, k) => { const a = byId(id); const w = worldOf(a.world); const ok = d.done.includes(id); return `<button class="node ${ok ? 'ok' : ''} ${k === nextIdx ? 'now' : ''} ${w.c}" data-act="${id}" style="--k:${k}"><span class="n-emo">${ok ? '✅' : w.emo}</span><span class="n-name">${esc(tx(a.title))}</span></button>`; }).join('')}</div>
           <button class="btn big green pulse-btn" data-start>${doneN === 0 ? t('▶ Start', '▶ शुरू करो') : doneN < d.plan.length ? t('▶ Continue', '▶ आगे बढ़ो') : t('🏅 All done! Play again', '🏅 सब पूरा! फिर खेलो')}</button>
         </div>
+        ${K.Diary ? K.Diary.card(c) : ''}
         <h3 class="section-title">📚 ${t('My class', 'मेरी कक्षा')} · ${tx(clsName(cl.id))}</h3>
-        <div class="subjects">${SUBJECTS.map((sid) => { const s = SYL.SUBJECTS[sid]; const chs = chaptersOf(cl.id, sid); const done = chs.filter((ch) => chDone(ch, c) === ch.acts.length).length; return `<button class="subject ${s.c}" data-sub="${sid}"><span class="s-emo">${s.emo}</span><span class="s-name">${tx(subName(sid))}</span><span class="s-book">${esc(SYL.bookFor(sid, cl.id, boardOf(c)))}</span><span class="s-bar"><i style="width:${chs.length ? (done / chs.length) * 100 : 0}%"></i></span><span class="s-count">${done}/${chs.length} ${t('chapters', 'पाठ')}</span></button>`; }).join('')}</div>
+        <div class="subjects">${subjectsOf(c).map((sid) => { const s = SYL.SUBJECTS[sid]; const chs = chaptersOf(cl.id, sid); const done = chs.filter((ch) => chDone(ch, c) === ch.acts.length).length; return `<button class="subject ${s.c}" data-sub="${sid}"><span class="s-emo">${s.emo}</span><span class="s-name">${tx(subName(sid))}</span><span class="s-book">${esc(SYL.bookFor(sid, cl.id, boardOf(c)))}</span><span class="s-bar"><i style="width:${chs.length ? (done / chs.length) * 100 : 0}%"></i></span><span class="s-count">${done}/${chs.length} ${t('chapters', 'पाठ')}</span></button>`; }).join('')}</div>
         ${GROUPS.map(([g, emo, en, hi]) => `<h3 class="section-title">${emo} ${t(en, hi)}</h3><div class="grid fun n${FUN.filter((w) => w.g === g).length}">${FUN.filter((w) => w.g === g).map((w) => `<button class="tile ${w.c}" data-world="${w.id}"><span class="emo">${w.emo}</span><span class="name">${tx(w.name)}</span></button>`).join('')}</div>`).join('')}
         <div class="footer-row"><button class="pill" data-stickers>📒 ${t('Stickers', 'स्टिकर')} (${c.stickers.length})</button><button class="pill" data-gallery>🖼️ ${t('My art', 'मेरी कला')}</button><button class="pill" data-classpick>🎒 ${t('Board & class', 'बोर्ड और कक्षा')}</button></div>
       </div>`;
     const greet = () => say(greeting(c, doneN, d.plan.length));
-    if (!K.greeted) { K.greeted = true; setTimeout(greet, 400); }
+    if (!K.greeted) { K.greeted = true; K.later(greet, 400); }
     q('[data-mascot]').onclick = () => { K.mascotCheer(); greet(); };
+    if (K.Diary) { K.Diary.bind(home); }
     q('[data-start]').onclick = () => { K.sfx.tap(); if (doneN === d.plan.length) { d.done = []; K.save(); } runJourney(); };
     qa('[data-act]').forEach((el) => { el.onclick = () => { K.sfx.tap(); K.nextAction = null; K.run(byId(el.dataset.act), home); }; });
     qa('[data-sub]').forEach((el) => { el.onclick = () => { K.sfx.tap(); subject(el.dataset.sub); }; });
@@ -158,11 +165,10 @@
       <div class="book-banner ${s.c}"><div><b>${tx(clsName(cls))}</b><span>📘 ${esc(SYL.bookFor(sid, cls, boardOf(c)))}</span></div><span class="bb-emo">${s.emo}</span></div>
       <div class="chapters">${chs.map((ch) => { const dn = chDone(ch, c); const full = dn === ch.acts.length; const lk = !ch.free && !K.state.full && !K.CONFIG.unlockAll; return `<button class="chapter ${full ? 'full' : ''} ${lk ? 'locked' : ''}" data-ch="${ch.id}"><span class="ch-no">${ch.no}</span><span class="ch-emo">${ch.emoji}</span><span class="ch-text"><b>${esc(tx(ch.title))}</b><small>${'⭐'.repeat(dn)}${'☆'.repeat(ch.acts.length - dn)} · ${ch.acts.length} ${t(ch.acts.length === 1 ? 'game' : 'games', 'खेल')}</small></span>${lk ? '<span class="l-lock">🔒</span>' : full ? '<span class="l-go">✅</span>' : '<span class="l-go">▶</span>'}</button>`; }).join('')}</div>
       ${extras.length ? `<h3 class="section-title">➕ ${t('Extra practice', 'और अभ्यास')}</h3><div class="lessons">${extras.map((a) => `<button class="lesson ${locked(a) ? 'locked' : ''}" data-l="${a.id}"><span class="l-emo">${c.counts[a.id] ? '✅' : typeEmoji(a.type)}</span><span class="l-text"><b>${esc(tx(a.title))}</b><small>${typeName(a.type)}</small></span>${locked(a) ? '<span class="l-lock">🔒</span>' : '<span class="l-go">▶</span>'}</button>`).join('')}</div>` : ''}
-      <div class="row center wrap" style="margin-top:14px">${SYL.CLASSES.filter((x) => x.id !== cls).map((x) => `<button class="pill" data-cls="${x.id}">${tx(clsName(x.id))}</button>`).join('')}</div>`, { name: 'subject' });
+      <p class="center muted small">${t('Only your class is shown. A grown-up can change the class from ⚙️.', 'सिर्फ़ तुम्हारी कक्षा दिखती है। कक्षा बड़े ⚙️ से बदल सकते हैं।')}</p>`, { name: 'subject' });
     say(t(`${subName(sid).en}, ${clsName(cls).en}`, `${subName(sid).hi}, ${clsName(cls).hi}`));
     qa('[data-ch]').forEach((el) => { el.onclick = () => { K.sfx.tap(); const ch = SYL.chapters.find((x) => x.id === el.dataset.ch); if (!ch.free && !K.state.full && !K.CONFIG.unlockAll) { lockedTeaser(); return; } chapter(ch, () => subject(sid, cls)); }; });
     qa('[data-l]').forEach((el) => { el.onclick = () => { K.sfx.tap(); const a = byId(el.dataset.l); if (locked(a)) { lockedTeaser(); return; } K.nextAction = null; K.run(a, () => subject(sid, cls)); }; });
-    qa('[data-cls]').forEach((el) => { el.onclick = () => { K.sfx.tap(); subject(sid, el.dataset.cls); }; });
   }
   function chapter(ch, back) {
     const c = K.child(); const s = SYL.SUBJECTS[ch.sub];
@@ -179,17 +185,15 @@
     qa('[data-a]').forEach((el) => { el.onclick = () => { K.sfx.tap(); playFrom(Number(el.dataset.a)); }; });
     q('[data-all]').onclick = () => { K.sfx.tap(); const first = ch.acts.findIndex((a) => !c.counts[a.id]); playFrom(first >= 0 ? first : 0); };
   }
-  function funWorld(id, showAll = false) {
+  function funWorld(id) {
     const w = worldOf(id); const lv = K.level(); const c = K.child();
     const mine = CUR.filter((a) => a.world === id && a.levels.includes(lv));
-    const others = CUR.filter((a) => a.world === id && !a.levels.includes(lv));
     const card = (a) => { const n = c.counts[a.id] || 0; return `<button class="lesson ${locked(a) ? 'locked' : ''}" data-l="${a.id}"><span class="l-emo">${n ? '✅' : typeEmoji(a.type)}</span><span class="l-text"><b>${esc(tx(a.title))}</b><small>${typeName(a.type)}${n ? ` · ${t('played', 'खेला')} ${n}×` : ''}</small></span>${locked(a) ? '<span class="l-lock">🔒</span>' : '<span class="l-go">▶</span>'}</button>`; };
     K.render(`${w.emo} ${tx(w.name)}`, `
-      <div class="lessons">${mine.map(card).join('') || `<p class="center muted">${t('More coming soon!', 'और जल्द आ रहा है!')}</p>`}</div>
-      ${others.length ? (showAll ? `<h3 class="section-title">${t('Other ages', 'दूसरी उम्र')}</h3><div class="lessons">${others.map(card).join('')}</div>` : `<button class="pill" data-all style="margin-top:14px;width:100%">${t('Show more for other ages', 'दूसरी उम्र के लिए और दिखाओ')} (${others.length})</button>`) : ''}`, { name: 'world' });
+      <div class="lvl-chip">${tx(K.LEVEL_NAME[lv])}</div>
+      <div class="lessons">${mine.map(card).join('') || `<p class="center muted">${t('More coming soon!', 'और जल्द आ रहा है!')}</p>`}</div>`, { name: 'world' });
     say(tx(w.name));
-    qa('[data-l]').forEach((el) => { el.onclick = () => { K.sfx.tap(); const a = byId(el.dataset.l); if (locked(a)) { lockedTeaser(); return; } K.nextAction = null; K.run(a, () => funWorld(id, showAll)); }; });
-    const all = q('[data-all]'); if (all) { all.onclick = () => { K.sfx.tap(); funWorld(id, true); }; }
+    qa('[data-l]').forEach((el) => { el.onclick = () => { K.sfx.tap(); const a = byId(el.dataset.l); if (locked(a)) { lockedTeaser(); return; } K.nextAction = null; K.run(a, () => funWorld(id)); }; });
   }
   K.funWorld = funWorld;
   const TYPE = {
@@ -198,7 +202,7 @@
     draw: ['🖍️', 'Draw', 'चित्र बनाओ'], rangoli: ['🌸', 'Rangoli', 'रंगोली'], sort: ['🧺', 'Sorting game', 'छाँटने का खेल'], order: ['🔢', 'Put in order', 'क्रम से लगाओ'], match: ['🔗', 'Match pairs', 'जोड़ी मिलाओ'],
     feed: ['🍌', 'Feed & count', 'खिलाओ और गिनो'], pop: ['🎈', 'Balloon pop', 'गुब्बारे फोड़ो'], shapes: ['🔺', 'Draw shapes', 'आकार बनाओ'], dots: ['✨', 'Dot to dot', 'बिंदु जोड़ो'], colour: ['🖌️', 'Colouring', 'रंग भरो'],
     mirror: ['🪞', 'Mirror game', 'शीशे का खेल'], tenframe: ['🔟', 'Ten frame', 'दस का खाना'], bundles: ['🥢', 'Build numbers', 'संख्या बनाओ'], clockset: ['🕐', 'Set the clock', 'घड़ी मिलाओ'], scale: ['⚖️', 'Balance', 'तराज़ू'],
-    share: ['🍪', 'Share fairly', 'बराबर बाँटो'], fraction: ['🫓', 'Fractions', 'भिन्न'], pictograph: ['📊', 'Make a chart', 'चार्ट बनाओ'], numline: ['🐸', 'Number line', 'संख्या रेखा'], shop: ['🛒', 'Shop game', 'दुकान का खेल'], spot: ['🔍', 'Find it', 'ढूँढो'], facts: ['🖼️', 'Picture facts', 'चित्र से जानो'], flagbuild: ['🇮🇳', 'Build the flag', 'झंडा बनाओ'],
+    share: ['🍪', 'Share fairly', 'बराबर बाँटो'], fraction: ['🫓', 'Fractions', 'भिन्न'], pictograph: ['📊', 'Make a chart', 'चार्ट बनाओ'], numline: ['🐸', 'Number line', 'संख्या रेखा'], shop: ['🛒', 'Shop game', 'दुकान का खेल'], spot: ['🔍', 'Find it', 'ढूँढो'], facts: ['🖼️', 'Picture facts', 'चित्र से जानो'], vocabday: ['🗣️', 'Word of the day', 'आज का शब्द'], flagbuild: ['🇮🇳', 'Build the flag', 'झंडा बनाओ'],
   };
   const typeEmoji = (ty) => (TYPE[ty] || ['⭐'])[0];
   const typeName = (ty) => (TYPE[ty] ? t(TYPE[ty][1], TYPE[ty][2]) : '');
@@ -213,7 +217,7 @@
     K.modal(`<h2>${t('Board and class', 'बोर्ड और कक्षा')}</h2>
       <div class="row wrap center">${SYL.BOARDS.map((b) => `<button class="seg ${boardOf(c) === b.id ? 'on' : ''}" data-b="${b.id}">${tx(b.name)}</button>`).join('')}</div>
       <p class="small">${t('Pick the class your child studies in. Pre-primary is the same for every board.', 'जिस कक्षा में बच्चा पढ़ता है, वह चुनें। प्री-प्राइमरी सभी बोर्ड के लिए एक जैसा है।')}</p>
-      <div class="who">${SYL.CLASSES.map((x) => `<button class="who-btn ${K.cls(c) === x.id ? 'on' : ''}" data-c="${x.id}"><span>${{ bal: '🧸', c1: '1️⃣', c2: '2️⃣', c3: '3️⃣' }[x.id]}</span>${tx(clsName(x.id))}<small>${tx(x.sub)}</small></button>`).join('')}</div><button class="btn ghost" data-close>✖</button>`);
+      <div class="who">${SYL.CLASSES.map((x) => `<button class="who-btn ${K.cls(c) === x.id ? 'on' : ''}" data-c="${x.id}"><span>${{ bal: '🧸', c1: '1️⃣', c2: '2️⃣', c3: '3️⃣', c4: '4️⃣', c5: '5️⃣' }[x.id]}</span>${tx(clsName(x.id))}<small>${tx(x.sub)}</small></button>`).join('')}</div><button class="btn ghost" data-close>✖</button>`);
     document.getElementById('overlay').onclick = (e) => {
       const b = e.target.closest('button'); if (!b) { return; } K.sfx.tap();
       const reset = () => { const d = c.days[K.today()]; if (d && !d.done.length) { d.plan = []; } K.save(); };
@@ -242,12 +246,12 @@
 
   // ---------------------------------------------------------------- ONBOARDING
   function welcome() {
-    K.current = 'welcome';
+    K.current = 'welcome'; K.rid = (K.rid || 0) + 1;
     document.getElementById('app').innerHTML = `<div class="screen onboarding">
       <div class="mascot big wave">${K.MASCOT}</div>
       <div class="logo-big">खेल खेल में</div><div class="logo-sub">Khel Khel Mein</div>
       <h2>Play. Learn. Grow.<br><span class="hi">खेलो। सीखो। आगे बढ़ो।</span></h2>
-      <p class="muted center">CBSE Balvatika to Class 3 · ages 3–10<br>बालवाटिका से कक्षा 3 तक · 3–10 साल</p>
+      <p class="muted center">CBSE · ICSE · International · Balvatika to Class 5 · ages 3–11<br>बालवाटिका से कक्षा 5 तक · 3–11 साल</p>
       <button class="btn big green" data-go>Let's begin · शुरू करें</button></div>`;
     q('[data-go]').onclick = () => { K.sfx.tap(); K.ac(); brief(0, () => newChildForm(true)); };
   }
@@ -256,7 +260,7 @@
     { emo: '📚', en: ['Chapter by chapter', 'Each subject follows the NCERT books: Mridang / Santoor (English), Sarangi / Veena (Hindi), Joyful Mathematics / Maths Mela, and Our Wondrous World. Every chapter has 1–3 hands-on games.'], hi: ['पाठ दर पाठ', 'हर विषय NCERT पुस्तकों के क्रम में है: मृदंग / संतूर (अंग्रेज़ी), सारंगी / वीणा (हिंदी), आनंदमय गणित / गणित मेला, और हमारा अद्भुत संसार। हर पाठ में 1–3 खेल हैं।'] },
     { emo: '🗺️', en: ['A Daily Journey', 'Every day: 6 short activities (about 20 minutes) – language, syllabus maths, Maths Gym or Abacus, My World, a values or safety lesson, and a poem, drawing, puzzle or story. The journey moves forward through the syllabus.'], hi: ['रोज़ की यात्रा', 'हर दिन 6 छोटी गतिविधियाँ (लगभग 20 मिनट) – भाषा, पाठ्यक्रम का गणित, गणित जिम या अबेकस, "मेरी दुनिया", संस्कार या सुरक्षा, और कविता, ड्रॉइंग, पहेली या कहानी। यात्रा पाठ्यक्रम में आगे बढ़ती है।'] },
     { emo: '👨‍👩‍👧', en: ['Your role', 'Sit together for poems and stories when you can. Each evening, open Grown-ups (⚙️) to see what your child learned and a question to talk about together.'], hi: ['आपकी भूमिका', 'कविता और कहानी के समय साथ बैठें। हर शाम बड़ों वाले भाग (⚙️) में देखें कि बच्चे ने क्या सीखा और साथ में बात करने के लिए एक सवाल।'] },
-    { emo: '🔒', en: ['Safe by design', 'No ads. No chat. No accounts. No microphone. Nothing leaves this phone. A daily play-time limit and a grown-ups lock keep screen time healthy.'], hi: ['पूरी तरह सुरक्षित', 'कोई विज्ञापन नहीं। कोई चैट नहीं। कोई अकाउंट नहीं। कोई माइक्रोफ़ोन नहीं। कोई डेटा फ़ोन से बाहर नहीं जाता। रोज़ की समय-सीमा और बड़ों का लॉक स्क्रीन टाइम संतुलित रखते हैं।'] },
+    { emo: '🔒', en: ['Safe by design', 'No ads. No chat. No accounts. The microphone is used only when your child taps 🎤 to say a sentence; voice clips stay on this phone. A daily play-time limit and a grown-ups lock keep screen time healthy.'], hi: ['पूरी तरह सुरक्षित', 'कोई विज्ञापन नहीं। कोई चैट नहीं। कोई अकाउंट नहीं। माइक सिर्फ़ तब चलता है जब बच्चा 🎤 दबाकर वाक्य बोलता है; आवाज़ की रिकॉर्डिंग इसी फ़ोन में रहती है। रोज़ की समय-सीमा और बड़ों का लॉक स्क्रीन टाइम संतुलित रखते हैं।'] },
   ];
   function brief(i, onDone, back) {
     const b = BRIEF[i];
@@ -278,7 +282,7 @@
     const html = `<div class="bar form-bar"><h1>${edit ? 'Edit profile · प्रोफ़ाइल बदलें' : "Your child's profile · बच्चे की प्रोफ़ाइल"}</h1></div>
       <div class="screen form">
       <section class="fbox"><label>👤 Name · नाम</label><input data-name maxlength="20" value="${esc(c.name)}" placeholder="e.g. Aarav / आरव" autocomplete="off" enterkeyhint="done"></section>
-      <section class="fbox"><label>🎂 Age · उम्र</label><div class="row wrap">${[3, 4, 5, 6, 7, 8, 9, 10].map((a) => `<button class="seg ${a === age ? 'on' : ''}" data-age="${a}">${a}</button>`).join('')}</div></section>
+      <section class="fbox"><label>🎂 Age · उम्र</label><div class="row wrap">${[3, 4, 5, 6, 7, 8, 9, 10, 11].map((a) => `<button class="seg ${a === age ? 'on' : ''}" data-age="${a}">${a}</button>`).join('')}</div></section>
       <section class="fbox"><label>🏫 School board · स्कूल बोर्ड</label><div class="row wrap">${SYL.BOARDS.map((b) => `<button class="seg ${b.id === board ? 'on' : ''}" data-board="${b.id}">${b.name.en}</button>`).join('')}</div></section>
       <section class="fbox"><label>📚 Class · कक्षा</label><div class="row wrap" data-clsrow>${clsBtns()}</div></section>
       <section class="fbox"><label>🗣️ Learning medium · सीखने का माध्यम</label><div class="row wrap">
@@ -287,7 +291,7 @@
       <section class="fbox"><label>😊 Avatar · चेहरा</label><div class="ava-grid">${AVATARS.map((a) => `<button class="ava ${a === avatar ? 'on' : ''}" data-ava="${a}">${a}</button>`).join('')}</div></section>
       </div>
       <div class="form-foot">${!first ? '<button class="btn ghost" data-cancel>Cancel · रद्द करें</button>' : ''}<button class="btn big green" data-save>${edit ? 'Save · सेव करें' : "Let's play · चलो खेलें"} ▶</button></div>`;
-    K.current = 'form'; document.getElementById('app').innerHTML = html;
+    K.current = 'form'; K.rid = (K.rid || 0) + 1; document.getElementById('app').innerHTML = html;
     const bindCls = () => qa('[data-cls]').forEach((el) => { el.onclick = () => { K.sfx.tap(); cls = el.dataset.cls; qa('[data-cls]').forEach((x) => x.classList.toggle('on', x === el)); }; });
     bindCls();
     { const nm = q('[data-name]'); const show = () => setTimeout(() => { try { nm.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { /* old WebView */ } }, 350); nm.onfocus = show; nm.onclick = show; }
@@ -321,7 +325,7 @@
   // ---------------------------------------------------------------- PARENTS
   async function parents(tab = 'today') {
     const c = K.child(); const price = (await K.Store.price()) || K.CONFIG.priceFallback; const cl = clsInfo(c);
-    const tabs = [['today', t('Today', 'आज')], ['progress', t('Progress', 'प्रगति')], ['settings', t('Settings', 'सेटिंग')], ['about', t('How it works', 'जानकारी')]];
+    const tabs = [['today', t('Today', 'आज')], ['diary', t('Diary', 'डायरी')], ['progress', t('Progress', 'प्रगति')], ['settings', t('Settings', 'सेटिंग')], ['about', t('How it works', 'जानकारी')]];
     const seg = (key, val, label) => `<button class="seg ${K.state[key] === val ? 'on' : ''}" data-set="${key}" data-val="${val}">${label}</button>`;
     let body = '';
     if (tab === 'today') {
@@ -334,12 +338,14 @@
           ${done.length ? `<ul class="report">${done.map((a) => { const ch = a.chapter && SYL.chapters.find((x) => x.id === a.chapter); return `<li>${worldOf(a.world).emo} <b>${esc(tx(a.title))}</b> <span class="muted">· ${ch ? `${tx(SYL.SUBJECTS[ch.sub].name)}, ${t('chapter', 'पाठ')} ${ch.no}: ${esc(tx(ch.title))}` : tx(worldOf(a.world).name)}</span></li>`; }).join('')}</ul>` : `<p>${t('Nothing yet today. The Daily Journey is waiting!', 'आज अभी कुछ नहीं। आज की यात्रा इंतज़ार कर रही है!')}</p>`}
           ${Object.keys(d.skills).length ? `<p><b>${t('Skills practised:', 'अभ्यास किए गए कौशल:')}</b> ${Object.keys(d.skills).map(skillName).join(', ')}</p>` : ''}</div>
         ${talks.length ? `<div class="panel"><h3>💬 ${t('Talk about it tonight', 'आज रात इस पर बात करें')}</h3><ul class="report">${talks.map((a) => `<li>${esc(tx(a.talk || a.remember || a.moral))}</li>`).join('')}</ul></div>` : ''}`;
+    } else if (tab === 'diary') {
+      body = K.Diary ? K.Diary.report(c) : '';
     } else if (tab === 'progress') {
       const sk = Object.entries(c.skills).sort((a, b) => b[1] - a[1]); const max = Math.max(1, ...sk.map(([, v]) => v));
       const last7 = Array.from({ length: 7 }, (_, k) => { const dt = new Date(); dt.setDate(dt.getDate() - (6 - k)); const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`; return [dt.toLocaleDateString(K.ui() === 'hi' ? 'hi-IN' : 'en-IN', { weekday: 'short' }), (c.days[key] || { done: [] }).done.length]; });
       const mx = Math.max(1, ...last7.map(([, v]) => v));
       body = `
-        <div class="panel"><h3>📚 ${t('Syllabus progress', 'पाठ्यक्रम प्रगति')} · ${tx(clsName(cl.id))} · ${tx(SYL.BOARDS.find((b) => b.id === boardOf(c)).name)}</h3>${SUBJECTS.map((sid) => { const chs = chaptersOf(cl.id, sid); const acts = chs.flatMap((x) => x.acts); const dn = acts.filter((a) => c.counts[a.id]).length; const chFull = chs.filter((x) => chDone(x, c) === x.acts.length).length; return `<div class="skill"><span>${SYL.SUBJECTS[sid].emo} ${tx(subName(sid))}</span><div class="bar-bg"><span style="width:${acts.length ? (dn / acts.length) * 100 : 0}%"></span></div><b>${chFull}/${chs.length}</b></div>`; }).join('')}
+        <div class="panel"><h3>📚 ${t('Syllabus progress', 'पाठ्यक्रम प्रगति')} · ${tx(clsName(cl.id))} · ${tx(SYL.BOARDS.find((b) => b.id === boardOf(c)).name)}</h3>${subjectsOf(c).map((sid) => { const chs = chaptersOf(cl.id, sid); const acts = chs.flatMap((x) => x.acts); const dn = acts.filter((a) => c.counts[a.id]).length; const chFull = chs.filter((x) => chDone(x, c) === x.acts.length).length; return `<div class="skill"><span>${SYL.SUBJECTS[sid].emo} ${tx(subName(sid))}</span><div class="bar-bg"><span style="width:${acts.length ? (dn / acts.length) * 100 : 0}%"></span></div><b>${chFull}/${chs.length}</b></div>`; }).join('')}
           <p class="small">${t('Numbers show chapters fully completed. The bar shows games played.', 'संख्या पूरे किए गए पाठ दिखाती है। पट्टी खेले गए खेल दिखाती है।')}</p></div>
         <div class="panel"><h3>📅 ${t('Last 7 days', 'पिछले 7 दिन')}</h3><div class="week">${last7.map(([dname, v]) => `<div class="wk"><div class="wk-bar"><span style="height:${(v / mx) * 100}%"></span></div><small>${dname}</small><b>${v}</b></div>`).join('')}</div></div>
         <div class="panel"><h3>🌱 ${t('Skills growing', 'बढ़ते कौशल')}</h3>${sk.length ? sk.map(([s, v]) => `<div class="skill"><span>${skillName(s)}</span><div class="bar-bg"><span style="width:${(v / max) * 100}%"></span></div><b>${v}</b></div>`).join('') : `<p>${t('Play a few activities to see skills here.', 'कुछ गतिविधियाँ खेलें, फिर यहाँ कौशल दिखेंगे।')}</p>`}</div>`;
@@ -347,7 +353,7 @@
       body = `
         ${K.CONFIG.unlockAll ? `<div class="panel"><h3>🧪 ${t('Testing mode: everything is unlocked', 'टेस्टिंग मोड: सब कुछ खुला है')}</h3><p class="small">${t('Set unlockAll: false in www/js/core.js before publishing.', 'प्रकाशित करने से पहले www/js/core.js में unlockAll: false करें।')}</p></div>` : ''}<div class="panel">${K.state.full ? `<h3>✅ ${t('Full Pack unlocked', 'फुल पैक अनलॉक है')}</h3><p>${t('Thank you for supporting us!', 'साथ देने के लिए धन्यवाद!')}</p>`
     : `<h3>⭐ ${t('Unlock the full syllabus', 'पूरा पाठ्यक्रम अनलॉक करें')}</h3><div class="price">${esc(price)} <small>${t('one-time · all children · no ads', 'एक बार · सभी बच्चे · कोई विज्ञापन नहीं')}</small></div>
-          <ul class="perks"><li>${t(`All ${SYL.chapters.length} CBSE chapters, Balvatika to Class 3`, `बालवाटिका से कक्षा 3 तक CBSE के सभी ${SYL.chapters.length} पाठ`)}</li><li>${t(`${CUR.length} games: drawing, maths, stories, poems, values`, `${CUR.length} खेल: ड्रॉइंग, गणित, कहानियाँ, कविताएँ, संस्कार`)}</li><li>${t('All new lessons we add, free', 'आगे जुड़ने वाले सभी पाठ मुफ़्त')}</li></ul>
+          <ul class="perks"><li>${t(`All ${SYL.chapters.length} chapters for CBSE, ICSE and International, Balvatika to Class 5`, `CBSE, ICSE और इंटरनेशनल के बालवाटिका से कक्षा 5 तक के सभी ${SYL.chapters.length} पाठ`)}</li><li>${t(`${CUR.length} games: drawing, maths, stories, poems, values`, `${CUR.length} खेल: ड्रॉइंग, गणित, कहानियाँ, कविताएँ, संस्कार`)}</li><li>${t('All new lessons we add, free', 'आगे जुड़ने वाले सभी पाठ मुफ़्त')}</li></ul>
           <div class="row"><button class="btn" data-buy>${t('Unlock', 'अनलॉक करें')} – ${esc(price)}</button><button class="btn ghost" data-restore>${t('Restore', 'रीस्टोर')}</button></div>`}</div>
         <div class="panel"><h3>👧 ${t('Children', 'बच्चे')}</h3>${K.state.profiles.map((p) => `<div class="child-row"><span>${p.avatar} <b>${esc(p.name)}</b> · ${p.age} ${t('yrs', 'साल')} · ${tx(SYL.classLabel(K.cls(p), p.board || 'cbse'))} (${(p.board || 'cbse').toUpperCase()}) · ${{ en: 'English', hi: 'हिंदी', both: 'Both' }[p.medium]}</span><button class="seg" data-edit="${p.id}">${t('Edit', 'बदलें')}</button></div>`).join('')}<button class="btn ghost" data-add style="margin-top:8px">➕ ${t('Add child', 'बच्चा जोड़ें')}</button></div>
         <div class="panel"><h3>🔊 ${t('Sound & voice', 'आवाज़')}</h3><div class="row wrap">${seg('sound', true, t('Sound on', 'आवाज़ चालू'))}${seg('sound', false, t('Sound off', 'आवाज़ बंद'))}</div>
@@ -355,15 +361,16 @@
           <div class="row wrap" style="margin-top:10px"><button class="btn ghost" data-test>🔊 ${t('Test voice', 'आवाज़ सुनें')}</button><button class="btn ghost" data-vcheck>🩺 ${t('Voice check', 'आवाज़ जाँच')}</button></div>
           <p class="small">${window.VO ? t(`Studio voice installed (${Object.keys(window.VO).length} clips).`, `स्टूडियो आवाज़ लगी है (${Object.keys(window.VO).length} क्लिप)।`) : t('Using the phone’s voice. For the best Hindi, install Google’s Hindi voice: Settings → Text-to-speech → Google → Install voice data → Hindi.', 'फ़ोन की आवाज़ इस्तेमाल हो रही है। अच्छी हिंदी के लिए: सेटिंग्स → टेक्स्ट-टू-स्पीच → Google → वॉइस डेटा → हिंदी इंस्टॉल करें।')}</p></div>
         <div class="panel"><h3>⏰ ${t('Daily play time', 'रोज़ खेलने का समय')}</h3><div class="row wrap">${seg('limit', 0, t('No limit', 'कोई सीमा नहीं'))}${seg('limit', 20, '20 min')}${seg('limit', 30, '30 min')}${seg('limit', 45, '45 min')}${seg('limit', 60, '60 min')}</div></div>
-        <div class="panel"><h3>🔒 ${t('Privacy', 'गोपनीयता')}</h3><p>${t('No ads. No accounts. No microphone. No data leaves this device.', 'कोई विज्ञापन नहीं। कोई अकाउंट नहीं। कोई माइक्रोफ़ोन नहीं। कोई डेटा फ़ोन से बाहर नहीं जाता।')}</p>
+        <div class="panel"><h3>🔒 ${t('Privacy', 'गोपनीयता')}</h3><p>${t('No ads. No accounts. Progress stays on this device. The microphone is used only when your child taps 🎤 in Word of the Day; the phone’s speech service (which may be Google’s online service) turns the sentence into text. Voice clips saved for you never leave this device.', 'कोई विज्ञापन नहीं। कोई अकाउंट नहीं। प्रगति इसी डिवाइस में रहती है। माइक सिर्फ़ तब चलता है जब बच्चा “आज का शब्द” में 🎤 दबाता है; फ़ोन की स्पीच सेवा (जो Google की ऑनलाइन सेवा हो सकती है) वाक्य को लिखित में बदलती है। आपके लिए सहेजी आवाज़ इसी डिवाइस में रहती है।')}</p>
           <div class="row wrap"><button class="btn ghost" data-privacy>${t('Privacy policy', 'गोपनीयता नीति')}</button><button class="btn ghost" data-reset>${t('Reset this child’s progress', 'इस बच्चे की प्रगति रीसेट करें')}</button></div><p class="small">Khel Khel Mein v${K.CONFIG.version} · ${t('Fonts: Baloo 2 (SIL OFL)', 'फ़ॉन्ट: Baloo 2 (SIL OFL)')}</p></div>`;
     } else {
       body = `<div class="panel">${BRIEF.map((b) => `<h3>${b.emo} ${esc(t(b.en[0], b.hi[0]))}</h3><p>${esc(t(b.en[1], b.hi[1]))}</p>`).join('')}</div>
-        <div class="panel"><h3>📘 ${t('Syllabus map', 'पाठ्यक्रम')}</h3>${SYL.BOARDS.map((b) => `<p><b>${tx(b.name)}</b>: ${SYL.CLASSES.map((x) => `${tx(SYL.classLabel(x.id, b.id))} – ${SUBJECTS.map((sid) => SYL.chaptersFor(x.id, sid, b.id).length).reduce((m, n) => m + n, 0)}`).join(' · ')} ${t('chapters', 'पाठ')}</p>`).join('')}
+        <div class="panel"><h3>📘 ${t('Syllabus map', 'पाठ्यक्रम')}</h3>${SYL.BOARDS.map((b) => `<p><b>${tx(b.name)}</b>: ${SYL.CLASSES.map((x) => `${tx(SYL.classLabel(x.id, b.id))} – ${SYL.subjectsFor(x.id, b.id).map((sid) => SYL.chaptersFor(x.id, sid, b.id).length).reduce((m, n) => m + n, 0)}`).join(' · ')} ${t('chapters', 'पाठ')}</p>`).join('')}
           <p class="small">${t('Chapters follow the themes and order of the NCERT books. All lesson text, stories and poems are written by us (or are traditional public-domain rhymes); no textbook text is copied.', 'पाठ NCERT पुस्तकों के विषयों और क्रम पर आधारित हैं। सारी सामग्री, कहानियाँ और कविताएँ हमारी लिखी हैं (या पारंपरिक); किसी पाठ्यपुस्तक से कुछ कॉपी नहीं किया गया।')}</p></div>`;
     }
     K.render(t('Grown-ups', 'बड़ों के लिए'), `<div class="tabs">${tabs.map(([k, l]) => `<button class="tab ${k === tab ? 'on' : ''}" data-tab="${k}">${l}</button>`).join('')}</div>${body}`, { name: 'parents' });
     qa('[data-tab]').forEach((el) => { el.onclick = () => { K.sfx.tap(); parents(el.dataset.tab); }; });
+    if (tab === 'diary' && K.Diary) { K.Diary.bindReport(c, () => parents('diary')); }
     qa('[data-set]').forEach((el) => {
       el.onclick = () => {
         K.sfx.tap(); const k = el.dataset.set; let v = el.dataset.val;
