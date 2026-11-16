@@ -5,7 +5,7 @@
   const SYL = window.SYL; const CUR = window.CUR;
 
   // ---------------------------------------------------------------- worlds
-  const ALL_SUBJECTS = ['english', 'hindi', 'maths', 'evs', 'science', 'social', 'computers', 'pe', 'arts'];
+  const ALL_SUBJECTS = ['english', 'hindi', 'maths', 'evs', 'science', 'social', 'computers', 'pe', 'arts', 'values'];
   const subjectsOf = (c = K.child()) => SYL.subjectsFor(K.cls(c), (c && c.board) || 'cbse');
   const FUN = [
     { id: 'gym', emo: '🏋️', c: 'c3', g: 'practice', name: { en: 'Maths Gym', hi: 'गणित जिम' } },
@@ -161,28 +161,36 @@
   function subject(sid, cls) {
     const c = K.child(); cls = cls || K.cls(c); const s = SYL.SUBJECTS[sid]; const cl = SYL.CLASSES.find((x) => x.id === cls);
     const chs = chaptersOf(cls, sid); const extras = extrasOf(sid, cl.level);
+    const test = K.practiceAct(`test-${cls}-${sid}`, { en: `${subName(sid).en} test`, hi: `${subName(sid).hi} परीक्षा` }, chs.filter((x) => x.free || K.state.full || K.CONFIG.unlockAll).flatMap((x) => x.acts), 20);
     K.render(`${s.emo} ${tx(subName(sid))}`, `
       <div class="book-banner ${s.c}"><div><b>${tx(clsName(cls))}</b><span>📘 ${esc(SYL.bookFor(sid, cls, boardOf(c)))}</span></div><span class="bb-emo">${s.emo}</span></div>
       <div class="chapters">${chs.map((ch) => { const dn = chDone(ch, c); const full = dn === ch.acts.length; const lk = !ch.free && !K.state.full && !K.CONFIG.unlockAll; return `<button class="chapter ${full ? 'full' : ''} ${lk ? 'locked' : ''}" data-ch="${ch.id}"><span class="ch-no ${ch.book === false ? 'practice' : ''}">${ch.book === false ? '✎' : (ch.dno || ch.no)}</span><span class="ch-emo">${ch.emoji}</span><span class="ch-text"><b>${esc(tx(ch.title))}</b><small>${'⭐'.repeat(dn)}${'☆'.repeat(ch.acts.length - dn)} · ${ch.acts.length} ${t(ch.acts.length === 1 ? 'game' : 'games', 'खेल')}</small></span>${lk ? '<span class="l-lock">🔒</span>' : full ? '<span class="l-go">✅</span>' : '<span class="l-go">▶</span>'}</button>`; }).join('')}</div>
+      ${test ? `<button class="btn big orange" data-test>🏆 ${t(`Subject test – ${test.type === 'gen' ? 20 : test.count} questions from all chapters`, `विषय परीक्षा – सभी पाठों से ${test.type === 'gen' ? 20 : test.count} सवाल`)}</button>` : ''}
       ${extras.length ? `<h3 class="section-title">➕ ${t('Extra practice', 'और अभ्यास')}</h3><div class="lessons">${extras.map((a) => `<button class="lesson ${locked(a) ? 'locked' : ''}" data-l="${a.id}"><span class="l-emo">${c.counts[a.id] ? '✅' : typeEmoji(a.type)}</span><span class="l-text"><b>${esc(tx(a.title))}</b><small>${typeName(a.type)}</small></span>${locked(a) ? '<span class="l-lock">🔒</span>' : '<span class="l-go">▶</span>'}</button>`).join('')}</div>` : ''}
       <p class="center muted small">${t('Only your class is shown. A grown-up can change the class from ⚙️.', 'सिर्फ़ तुम्हारी कक्षा दिखती है। कक्षा बड़े ⚙️ से बदल सकते हैं।')}</p>`, { name: 'subject' });
     say(t(`${subName(sid).en}, ${clsName(cls).en}`, `${subName(sid).hi}, ${clsName(cls).hi}`));
+    if (test) { q('[data-test]').onclick = () => { K.sfx.tap(); K.nextAction = null; K.run(test, () => subject(sid, cls)); }; }
     qa('[data-ch]').forEach((el) => { el.onclick = () => { K.sfx.tap(); const ch = SYL.chapters.find((x) => x.id === el.dataset.ch); if (!ch.free && !K.state.full && !K.CONFIG.unlockAll) { lockedTeaser(); return; } chapter(ch, () => subject(sid, cls)); }; });
     qa('[data-l]').forEach((el) => { el.onclick = () => { K.sfx.tap(); const a = byId(el.dataset.l); if (locked(a)) { lockedTeaser(); return; } K.nextAction = null; K.run(a, () => subject(sid, cls)); }; });
   }
   function chapter(ch, back) {
     const c = K.child(); const s = SYL.SUBJECTS[ch.sub];
     const self = () => chapter(ch, back);
+    const rl = K.realLife(ch); const prac = K.practiceAct(ch.id, { en: `Practice: ${ch.title.en}`, hi: `अभ्यास: ${ch.title.hi}` }, ch.acts, 10);
     K.render(`${ch.emoji} ${ch.book === false ? t('Practice', 'अभ्यास') : `${t('Chapter', 'पाठ')} ${ch.dno || ch.no}`}`, `
       <div class="ch-hero ${s.c}"><div class="ch-big">${ch.emoji}</div><h2>${esc(tx(ch.title))}</h2>${K.both() && ch.title.hi !== ch.title.en ? `<div class="subline">${esc(ch.title.hi)}</div>` : ''}</div>
       <div class="acts">${ch.acts.map((a, k) => `<button class="act-btn ${c.counts[a.id] ? 'ok' : ''}" data-a="${k}"><span class="a-num">${c.counts[a.id] ? '⭐' : k + 1}</span><span class="a-emo">${typeEmoji(a.type)}</span><span class="a-text"><b>${esc(tx(a.title))}</b><small>${typeName(a.type)}</small></span><span class="l-go">▶</span></button>`).join('')}</div>
-      <button class="btn big green" data-all>▶ ${t('Play the whole chapter', 'पूरा पाठ खेलो')}</button>`, { name: 'chapter', back });
+      <button class="btn big green" data-all>▶ ${t('Play the whole chapter', 'पूरा पाठ खेलो')}</button>
+      ${prac ? `<button class="btn big orange" data-prac>📝 ${(prac.type === 'gen' ? t('Practice more – 10 new questions', 'और अभ्यास – 10 नए सवाल') : t(`Practice more – ${prac.count} questions`, `और अभ्यास – ${prac.count} सवाल`))}</button>` : ''}
+      <div class="real-life" data-rl><div class="rl-h">🌍 ${t('Where will I use this?', 'यह कहाँ काम आएगा?')} <span>🔊</span></div><p>${esc(tx(rl.use))}</p><div class="rl-h">🙏 ${t('Good manners', 'अच्छे संस्कार')}</div><p>${esc(tx(rl.manners))}</p></div>`, { name: 'chapter', back });
     sayT(ch.title);
     const playFrom = (k) => {
       K.nextAction = k + 1 < ch.acts.length ? () => playFrom(k + 1) : null;
       K.run(ch.acts[k], self);
     };
     qa('[data-a]').forEach((el) => { el.onclick = () => { K.sfx.tap(); playFrom(Number(el.dataset.a)); }; });
+    if (prac) { q('[data-prac]').onclick = () => { K.sfx.tap(); K.nextAction = null; K.run(prac, self); }; }
+    q('[data-rl]').onclick = () => { K.sfx.tap(); K.sayT(rl.use).then(() => K.sayT(rl.manners)); };
     q('[data-all]').onclick = () => { K.sfx.tap(); const first = ch.acts.findIndex((a) => !c.counts[a.id]); playFrom(first >= 0 ? first : 0); };
   }
   function funWorld(id) {

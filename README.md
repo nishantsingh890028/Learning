@@ -1,4 +1,12 @@
-# Khel Khel Mein: Play & Learn (Android) – v4.1
+# Khel Khel Mein: Play & Learn (Android) – v4.2
+
+## What's new in v4.2
+- **Every school subject, every class (1–5, all boards):** English, Hindi, Maths, EVS (or Science + Social Studies in Classes 4–5), Computers, **Physical Education & Yoga**, **Arts (art, music, dance, theatre)** and a new **Values & Manners** subject.
+- **Values & Manners:** Golu's guidelines for real life (magic words, table manners, classroom, public places, respecting elders and helpers, sharing and fair play, body safety and strangers with NO–GO–TELL and helpline 1098, phone and online manners, handling anger, honesty, cleanliness, gratitude, being a good citizen), each with do's and don'ts plus "what would you do?" situations.
+- **Our own cartoon friends:** Princess Hima of the Snow Mountains and Sheru the snow leopard, Robo Rinku, Captain Chintu, Detective Tara and Ranger Meera (original characters).
+- **Moral stories beyond the Panchatantra:** Aesop, Jataka, Hitopadesha, Tenali Raman, Akbar–Birbal, Mulla Nasruddin, and true stories of Lal Bahadur Shastri, Vidyasagar, young Gandhi, Guru Nanak and the Buddha – also in the Stories world.
+- **Practice more:** every chapter has a fresh practice test built from everything it teaches (maths: new generated sums every time), and every subject has a 20-question **Subject test**.
+- **Where will I use this?** every chapter shows how the lesson is used in real life and a good-manners tip, read aloud by Golu.
 
 ## What's new in v4.1
 - **Every NCERT chapter for Classes 1–3, in book order:** Sarangi 1 (19), Mridang 2 (13), Sarangi 2 (26), Santoor 3 (12), Veena 3 (18), plus Class 3 **Khel Yoga** (7) and **Arts – Bansuri**. Extra grammar chapters now come after the book, marked ✎ "Practice".

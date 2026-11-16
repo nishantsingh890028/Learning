@@ -692,3 +692,9 @@ html, body { height: 100%; overflow: hidden; }
 .g-abacus .ab-steps { max-height: 190px; }
 .mascot.dock::after { content: '?'; position: absolute; right: -2px; top: -2px; width: 22px; height: 22px; border-radius: 50%; background: #f97316; color: #fff; font-weight: 900; font-size: 15px; display: grid; place-items: center; box-shadow: 0 2px 0 #c2410c; }
 .question .qt { display: inline; }
+/* v4.2 real-life + practice */
+.real-life { margin: 14px 0 6px; background: linear-gradient(135deg, #ecfeff, #f0fdf4); border: 2px solid #a7f3d0; border-radius: 22px; padding: 12px 14px; cursor: pointer; }
+.real-life .rl-h { font-weight: 900; color: #047857; display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.real-life p { margin: 4px 0 8px; font-size: 16px; line-height: 1.45; color: #1e293b; }
+.btn.big.orange { margin-top: 10px; }
+.ch-no.practice { background: #fde68a; color: #92400e; }

@@ -22,16 +22,14 @@
     computers: { emo: '💻', c: 'c2', name: { en: 'Computers', hi: 'कंप्यूटर' }, book: {} },
     pe: { emo: '🧘', c: 'c3', name: { en: 'Khel Yoga', hi: 'खेल योग' }, book: { c3: 'Khel Yoga' } },
     arts: { emo: '🎨', c: 'c4', name: { en: 'Arts', hi: 'कला' }, book: { c3: 'Bansuri' } },
+    values: { emo: '🌟', c: 'c1', name: { en: 'Values & Manners', hi: 'मूल्य और संस्कार' }, book: {} },
   };
   /** Subjects a class studies on a board. Class 4–5: CBSE keeps EVS (Our Wondrous World); ICSE and International split it into Science + Social Studies. */
   SYL.subjectsFor = (cls, board = 'cbse') => {
     if (cls === 'bal') { return ['english', 'hindi', 'maths', 'evs']; }
-    if (cls !== 'c4' && cls !== 'c5') {   // Classes 1–3
-      if (board === 'icse') { return ['english', 'hindi', 'maths', 'evs', 'computers']; }
-      if (board === 'intl') { return ['english', 'hindi', 'maths', 'evs', 'social', 'computers']; }
-      return cls === 'c3' ? ['english', 'hindi', 'maths', 'evs', 'pe', 'arts'] : ['english', 'hindi', 'maths', 'evs'];
-    }
-    return board === 'cbse' ? ['english', 'hindi', 'maths', 'evs', 'computers'] : ['english', 'hindi', 'maths', 'science', 'social', 'computers'];
+    const more = ['computers', 'pe', 'arts', 'values'];
+    if (cls === 'c4' || cls === 'c5') { return board === 'cbse' ? ['english', 'hindi', 'maths', 'evs', ...more] : ['english', 'hindi', 'maths', 'science', 'social', ...more]; }
+    return board === 'intl' ? ['english', 'hindi', 'maths', 'evs', 'social', ...more] : ['english', 'hindi', 'maths', 'evs', ...more];
   };
   SYL.BOARDS = [
     { id: 'cbse', name: { en: 'CBSE / NCERT', hi: 'सीबीएसई / एनसीईआरटी' } },
@@ -39,7 +37,7 @@
     { id: 'intl', name: { en: 'International (Cambridge-style)', hi: 'इंटरनेशनल (कैम्ब्रिज जैसा)' } },
   ];
   SYL.classLabel = (cls, board) => (board === 'intl' && cls !== 'bal' ? { en: `Stage ${cls.slice(1)}`, hi: `स्टेज ${cls.slice(1)}` } : SYL.CLASSES.find((x) => x.id === cls).name);
-  SYL.bookFor = (sub, cls, board) => (cls === 'bal' ? 'Jadui Pitara (play-based)' : sub === 'computers' ? (board === 'intl' ? 'Computing & digital literacy' : 'Computer studies') : board === 'icse' ? { english: 'ICSE English: grammar & language', hindi: 'ICSE हिंदी व्याकरण', maths: 'ICSE Mathematics themes', evs: 'ICSE EVS themes', science: 'ICSE Science themes', social: 'ICSE History, Civics & Geography' }[sub] : board === 'intl' ? { english: 'Cambridge Primary English–style', hindi: 'Hindi (second language)', maths: 'Cambridge Primary Maths–style', evs: 'Cambridge Primary Science–style', science: 'Cambridge Primary Science–style', social: 'Global Perspectives & Humanities–style' }[sub] : SYL.SUBJECTS[sub].book[cls] || '');
+  SYL.bookFor = (sub, cls, board) => (cls === 'bal' ? 'Jadui Pitara (play-based)' : sub === 'pe' ? (board === 'cbse' && cls === 'c3' ? 'Khel Yoga' : 'Physical Education & Yoga') : sub === 'arts' ? (board === 'cbse' && cls === 'c3' ? 'Bansuri' : 'Art, Music, Dance & Theatre') : sub === 'values' ? 'Moral stories, manners & life skills' : sub === 'computers' ? (board === 'intl' ? 'Computing & digital literacy' : 'Computer studies') : board === 'icse' ? { english: 'ICSE English: grammar & language', hindi: 'ICSE हिंदी व्याकरण', maths: 'ICSE Mathematics themes', evs: 'ICSE EVS themes', science: 'ICSE Science themes', social: 'ICSE History, Civics & Geography' }[sub] : board === 'intl' ? { english: 'Cambridge Primary English–style', hindi: 'Hindi (second language)', maths: 'Cambridge Primary Maths–style', evs: 'Cambridge Primary Science–style', science: 'Cambridge Primary Science–style', social: 'Global Perspectives & Humanities–style' }[sub] : SYL.SUBJECTS[sub].book[cls] || '');
   /** chapters for a class/subject/board. Pre-primary is shared; International Hindi uses the ICSE Hindi course. */
   SYL.chaptersFor = (cls, sub, board = 'cbse') => {
     const b = cls === 'bal' ? 'cbse' : board === 'intl' && sub === 'hindi' ? 'icse' : board;
@@ -71,7 +69,7 @@
     SYL.chapters.push(ch);
     return ch;
   };
-  const SKILL = { english: ['vocabulary', 'reading', 'listening'], hindi: ['reading', 'vocabulary', 'listening'], maths: ['numbers', 'calculation', 'logic'], evs: ['science', 'knowledge'], science: ['science', 'knowledge', 'logic'], social: ['knowledge', 'values'], computers: ['logic', 'knowledge'], pe: ['movement', 'values'], arts: ['creativity', 'music'] };
+  const SKILL = { english: ['vocabulary', 'reading', 'listening'], hindi: ['reading', 'vocabulary', 'listening'], maths: ['numbers', 'calculation', 'logic'], evs: ['science', 'knowledge'], science: ['science', 'knowledge', 'logic'], social: ['knowledge', 'values'], computers: ['logic', 'knowledge'], pe: ['movement', 'values'], arts: ['creativity', 'music'], values: ['values', 'emotions', 'life'] };
 
   // ---------------------------------------------------------------- builders
   const T = (en, hi) => ({ en, hi });

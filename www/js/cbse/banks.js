@@ -117,6 +117,8 @@
     return { type: 'sort', bins: S.bins.map(([id, emoji, en, hi]) => ({ id, emoji, label: T(en, hi) })), items: S.items.map(([e, bin, en, hi]) => ({ e, bin, name: T(en, hi) })), count: 8 };
   };
   K.SCI = SCI;
+  /** a fresh concrete activity spec for a bank act (used to build practice pools) */
+  K.bankSpec = (act) => { try { return act.sci ? sci(act.sci, act.mode) : BUILD[act.bank](act); } catch (e) { return null; } };
 
   K.ENGINES.bank = (act, back) => {
     const spec = act.sci ? sci(act.sci, act.mode) : BUILD[act.bank](act);
