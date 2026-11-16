@@ -9,7 +9,7 @@ window.K = (() => {
     entitlement: 'full',
     priceFallback: '₹299',
     demoUnlock: true,                                         // browser preview only; never unlocks in the Android app
-    version: '4.2.0',
+    version: '4.3.0',
     // Testing: everything unlocked. Set to false before publishing so the Full Pack purchase works.
     unlockAll: true,
     dailyCount: 5,
@@ -48,7 +48,7 @@ window.K = (() => {
   /** text from {en, hi} or string */
   K.tx = (o) => (o == null ? '' : typeof o === 'string' || typeof o === 'number' ? String(o) : (K.ui() === 'hi' ? (o.hi ?? o.en) : (o.en ?? o.hi)));
   /** secondary-language subtitle when medium = both */
-  K.sub = (o) => (K.both() && o && typeof o === 'object' && o.hi && o.en ? `<div class="subline">${K.esc(o.hi)}</div>` : '');
+  K.sub = (o) => (K.both() && o && typeof o === 'object' && o.hi && o.en && o.hi !== o.en ? `<div class="subline">${K.esc(o.hi)}</div>` : '');
 
   // ---------------------------------------------------------------- sound effects
   let actx;
@@ -306,7 +306,13 @@ window.K = (() => {
   /** speak a {en,hi} object in the child's medium (both → English then Hindi) */
   K.sayT = async (o, opts) => {
     if (typeof o !== 'object' || o === null) { return K.say(o, opts); }
-    if (K.both() && o.en && o.hi) { await K.say(o.en, opts); return K.say(o.hi, opts); }
+    if (K.both() && o.en && o.hi && o.en !== o.hi) {
+      // English + Hindi children: Golu speaks ONE language (Settings → "Golu speaks"); tapping 🔊 again gives the other one
+      const v = K.state.voiceLang || 'en'; const other = opts && opts.other != null ? opts.other : !!K._askOther;
+      if (v === 'both' && !other) { await K.say(o.en, opts); return K.say(o.hi, opts); }
+      const first = v === 'hi' ? 'hi' : 'en'; const lang = other ? (first === 'en' ? 'hi' : 'en') : first;
+      return K.say(o[lang], opts);
+    }
     return K.say(K.tx(o), opts);
   };
 
@@ -322,7 +328,11 @@ window.K = (() => {
     <path class="golu-trunk" d="M60 58 C 54 72, 52 86, 62 94 C 70 100, 80 94, 76 88 C 72 92, 66 90, 66 84 C 66 76, 68 68, 66 60 Z" fill="#93c5fd"/>
     <ellipse class="golu-mouth" cx="48" cy="77" rx="5" ry="2.2" fill="#9f1239"/>
   </svg>`;
-  K.mascotSay = (text) => { const b = document.querySelector('.bubble'); if (b && text) { b.textContent = text.length > 120 ? text.slice(0, 118) + '…' : text; b.classList.add('show'); } };
+  K.mascotSay = (text) => { const b = document.querySelector('.bubble'); if (b && text) {
+    // don't repeat in the bubble what is already written on the screen (the question / heading)
+    const norm = (x) => String(x).replace(/\s+/g, ' ').trim();
+    const shown = norm([...document.querySelectorAll('.question, .ch-hero h2, .ch-hero .subline, .vc-word')].map((e) => e.textContent).join(' '));
+    if (shown && shown.includes(norm(text))) { b.classList.remove('show'); return; } b.textContent = text.length > 120 ? text.slice(0, 118) + '…' : text; b.classList.add('show'); } };
   K.mascotTalk = (on) => { document.querySelectorAll('.mascot').forEach((m) => m.classList.toggle('talking', !!on)); };
   K.mascotCheer = () => { document.querySelectorAll('.mascot').forEach((m) => { m.classList.remove('cheer'); void m.offsetWidth; m.classList.add('cheer'); }); };
 

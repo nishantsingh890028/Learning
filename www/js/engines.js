@@ -31,7 +31,8 @@
         ${R.stage ? `<div class="stage">${R.stage}</div>` : ''}
         <div class="options ${R.options.length === 4 || R.wide ? 'two' : ''} ${R.textOptions ? 'text' : ''}">${R.options.map((o, k) => `<button class="opt" data-k="${k}">${o.label}</button>`).join('')}</div>
         <div class="explain hidden" data-explain></div>`, { name: 'act', back });
-      const ask = () => { if (R.ask) { R.ask(); } };
+      let asks = 0;
+      const ask = () => { if (R.ask) { K._askOther = asks % 2 === 1; asks++; R.ask(); K._askOther = false; } };
       ask();
       q('[data-ask]').onclick = () => { K.sfx.tap(); ask(); };
       if (R.bind) { R.bind(); }
@@ -62,7 +63,7 @@
   }
   K.rounds = rounds;
 
-  const label = (o) => (typeof o === 'object' && o !== null ? (o.en && o.hi && K.both() ? `${esc(o.en)}<small>${esc(o.hi)}</small>` : esc(tx(o))) : esc(o));
+  const label = (o) => (typeof o === 'object' && o !== null ? (o.en && o.hi && o.en !== o.hi && K.both() ? `${esc(o.en)}<small>${esc(o.hi)}</small>` : esc(tx(o))) : esc(o));
 
   // ================================================================ 1. CARDS (learn + quick check)
   function cards(act, back) {
@@ -71,7 +72,7 @@
       if (it.say) { return sayT(it.say); }
       if (act.bilingual) {   // English vocabulary with Hindi meaning
         await say(it.word.en, { lang: 'en-IN' });
-        if (K.child().medium !== 'en' && it.word.hi) { await say(it.word.hi, { lang: 'hi-IN' }); }
+        if (it.word.hi && (K.child().medium === 'hi' || (K.both() && K.state.voiceLang === 'both'))) { await say(it.word.hi, { lang: 'hi-IN' }); }
         return;
       }
       return sayT(it.word || it.big);
@@ -120,14 +121,30 @@
   }
 
   // ================================================================ 2. QUIZ (fixed questions with explanations)
+  // ---- choose questions: every question once, different wording first, ones not seen recently first, no two alike in a row
+  const qKey = (Q) => `${Q.emoji || ''}|${typeof Q.q === 'object' ? Q.q.en : Q.q}`;
+  K.recentQ = K.recentQ || new Map();
+  function pickQs(list, n) {
+    const occ = new Map();
+    const ranked = shuffle(list).map((Q) => { const k = qKey(Q); const o = occ.get(k) || 0; occ.set(k, o + 1); const fullK = `${k}|${JSON.stringify(Q.options[Q.answer || 0])}`; return { Q, k, o, seen: K.recentQ.get(fullK) || 0, fullK }; });
+    ranked.sort((a, b) => a.o - b.o || (a.Q.review ? 1 : 0) - (b.Q.review ? 1 : 0) || a.seen - b.seen);   // chapter questions before revision ones
+    // the same wording (e.g. “Which is a proper noun?”) at most twice in one test
+    const chosen = ranked.filter((x) => x.o < 2).slice(0, n);
+    const out = []; let rest = shuffle(chosen);
+    while (rest.length) { const prev = out.length ? out[out.length - 1].k : null; let i = rest.findIndex((x) => x.k !== prev); if (i < 0) { i = 0; } out.push(rest[i]); rest = rest.filter((_, j) => j !== i); }
+    const now = Date.now(); out.forEach((x) => K.recentQ.set(x.fullK, now));
+    if (K.recentQ.size > 600) { [...K.recentQ.keys()].slice(0, 200).forEach((k) => K.recentQ.delete(k)); }
+    return out.map((x) => x.Q);
+  }
+  K.pickQs = pickQs;
   function quiz(act, back) {
-    const qs = shuffle(act.questions).slice(0, act.count || 6);
+    const qs = pickQs(act.questions, act.count || 6);
     rounds(act, tx(act.title), qs.length, (r) => {
       const Q = qs[r];
       const opts = Q.options.map((o, k) => ({ o, k }));
       const textOpt = Q.options.some((o) => (typeof o === 'object' ? (tx(o) || '').length > 3 : String(o).length > 3));
       return {
-        question: `${Q.emoji ? `<span class="q-emoji">${Q.emoji}</span>` : ''}${label(Q.q)}`,
+        question: `${Q.review ? `<span class="q-tag">🔁 ${t('Revision', 'दोहराई')}</span>` : ''}${Q.emoji ? `<span class="q-emoji">${Q.emoji}</span>` : ''}${label(Q.q)}`,
         options: (Q.keepOrder ? opts : shuffle(opts)).map(({ o, k }) => ({ label: label(o), correct: k === Q.answer })),
         textOptions: textOpt, wide: textOpt,
         ask: () => sayT(Q.q),
@@ -582,7 +599,13 @@
   function gen(act, back) {
     const lv = K.level();
     const g = GEN[act.gen];
-    rounds(act, tx(act.title), act.rounds || 8, (r) => g(act.level || lv, r), back);
+    const seen = new Set();
+    const keyOf = (R) => `${typeof R.question === 'object' ? JSON.stringify(R.question) : R.question}|${R.stage || ''}|${(R.options || []).map((o) => (o.correct ? `*${o.label}` : '')).join('')}`;
+    rounds(act, tx(act.title), act.rounds || 8, (r) => {
+      let R = g(act.level || lv, r);
+      for (let tries = 0; tries < 15 && seen.has(keyOf(R)); tries++) { R = g(act.level || lv, r); }
+      seen.add(keyOf(R)); return R;
+    }, back);
   }
 
   // ================================================================ 10. MEMORY

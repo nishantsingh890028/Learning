@@ -698,3 +698,4 @@ html, body { height: 100%; overflow: hidden; }
 .real-life p { margin: 4px 0 8px; font-size: 16px; line-height: 1.45; color: #1e293b; }
 .btn.big.orange { margin-top: 10px; }
 .ch-no.practice { background: #fde68a; color: #92400e; }
+.q-tag{display:block;width:max-content;margin:0 auto 6px;font-size:.72rem;font-weight:800;color:#7c3aed;background:#ede9fe;border-radius:999px;padding:3px 10px}

@@ -1,4 +1,9 @@
-# Khel Khel Mein: Play & Learn (Android) – v4.2
+# Khel Khel Mein: Play & Learn (Android) – v4.3
+
+## What's new in v4.3
+- **Golu speaks once:** for English + Hindi children Golu now speaks one language (Grown-ups → Settings → "Golu speaks": English, Hindi or both). Both languages stay written on screen; tap 🔊 again to hear the other language. Hindi lessons are no longer read (and shown) twice, and Golu's bubble no longer repeats the question already on screen.
+- **Better practice questions:** natural, grammatical wording in one language (no more mixed Hindi/English or “– What is the right thing to do?” add-ons), story questions name the story, the pronoun exercise is fixed (“Riya and Arjun are playing”).
+- **No repeats:** each practice test asks every question once, the same wording at most twice and never back to back, and questions you saw recently come last. Maths practice never repeats a sum in the same round. Small chapters get a few 🔁 revision questions from the two chapters before, so “Practice more” feels new each time.
 
 ## What's new in v4.2
 - **Every school subject, every class (1–5, all boards):** English, Hindi, Maths, EVS (or Science + Social Studies in Classes 4–5), Computers, **Physical Education & Yoga**, **Arts (art, music, dance, theatre)** and a new **Values & Manners** subject.

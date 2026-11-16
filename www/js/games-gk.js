@@ -3,7 +3,7 @@
 (() => {
   'use strict';
   const { t, tx, esc, say, sayT, q, qa, shuffle } = K;
-  const label = (o) => (typeof o === 'object' && o !== null ? (o.en && o.hi && K.both() ? `${esc(o.en)}<small>${esc(o.hi)}</small>` : esc(tx(o))) : esc(o));
+  const label = (o) => (typeof o === 'object' && o !== null ? (o.en && o.hi && o.en !== o.hi && K.both() ? `${esc(o.en)}<small>${esc(o.hi)}</small>` : esc(tx(o))) : esc(o));
   const L = (en, hi) => esc(t(en, hi));
 
   // ---------------------------------------------------------------- diagrams (SVG)

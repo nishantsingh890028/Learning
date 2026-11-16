@@ -176,7 +176,10 @@
   function chapter(ch, back) {
     const c = K.child(); const s = SYL.SUBJECTS[ch.sub];
     const self = () => chapter(ch, back);
-    const rl = K.realLife(ch); const prac = K.practiceAct(ch.id, { en: `Practice: ${ch.title.en}`, hi: `अभ्यास: ${ch.title.hi}` }, ch.acts, 10);
+    // practice = this chapter, topped up with a few revision questions from the two chapters before it
+    const list = SYL.chaptersFor(ch.cls, ch.sub, ch.board || 'cbse'); const at = list.findIndex((x) => x.id === ch.id);
+    const before = at > 0 ? list.slice(Math.max(0, at - 2), at).filter((x) => x.free || K.state.full || K.CONFIG.unlockAll).flatMap((x) => x.acts) : [];
+    const rl = K.realLife(ch); const prac = K.practiceAct(ch.id, { en: `Practice: ${ch.title.en}`, hi: `अभ्यास: ${ch.title.hi}` }, ch.acts, 10, before);
     K.render(`${ch.emoji} ${ch.book === false ? t('Practice', 'अभ्यास') : `${t('Chapter', 'पाठ')} ${ch.dno || ch.no}`}`, `
       <div class="ch-hero ${s.c}"><div class="ch-big">${ch.emoji}</div><h2>${esc(tx(ch.title))}</h2>${K.both() && ch.title.hi !== ch.title.en ? `<div class="subline">${esc(ch.title.hi)}</div>` : ''}</div>
       <div class="acts">${ch.acts.map((a, k) => `<button class="act-btn ${c.counts[a.id] ? 'ok' : ''}" data-a="${k}"><span class="a-num">${c.counts[a.id] ? '⭐' : k + 1}</span><span class="a-emo">${typeEmoji(a.type)}</span><span class="a-text"><b>${esc(tx(a.title))}</b><small>${typeName(a.type)}</small></span><span class="l-go">▶</span></button>`).join('')}</div>
@@ -366,6 +369,7 @@
           <div class="row"><button class="btn" data-buy>${t('Unlock', 'अनलॉक करें')} – ${esc(price)}</button><button class="btn ghost" data-restore>${t('Restore', 'रीस्टोर')}</button></div>`}</div>
         <div class="panel"><h3>👧 ${t('Children', 'बच्चे')}</h3>${K.state.profiles.map((p) => `<div class="child-row"><span>${p.avatar} <b>${esc(p.name)}</b> · ${p.age} ${t('yrs', 'साल')} · ${tx(SYL.classLabel(K.cls(p), p.board || 'cbse'))} (${(p.board || 'cbse').toUpperCase()}) · ${{ en: 'English', hi: 'हिंदी', both: 'Both' }[p.medium]}</span><button class="seg" data-edit="${p.id}">${t('Edit', 'बदलें')}</button></div>`).join('')}<button class="btn ghost" data-add style="margin-top:8px">➕ ${t('Add child', 'बच्चा जोड़ें')}</button></div>
         <div class="panel"><h3>🔊 ${t('Sound & voice', 'आवाज़')}</h3><div class="row wrap">${seg('sound', true, t('Sound on', 'आवाज़ चालू'))}${seg('sound', false, t('Sound off', 'आवाज़ बंद'))}</div>
+          ${K.both() ? `<p style="margin-top:10px">${t('Golu speaks', 'गोलू बोलेगा')}</p><div class="row wrap">${seg('voiceLang', 'en', 'English')}${seg('voiceLang', 'hi', 'हिंदी')}${seg('voiceLang', 'both', t('Both (English, then Hindi)', 'दोनों (पहले अंग्रेज़ी, फिर हिंदी)'))}</div><p class="small">${t('Words are always written in both languages. Tap 🔊 again to hear the other language.', 'शब्द हमेशा दोनों भाषाओं में लिखे रहते हैं। दूसरी भाषा सुनने के लिए 🔊 फिर दबाएँ।')}</p>` : ''}
           <p style="margin-top:10px">${t('Voice speed', 'बोलने की गति')}</p><div class="row wrap">${seg('speed', 0.85, t('Slow', 'धीमी'))}${seg('speed', 1, t('Normal', 'सामान्य'))}${seg('speed', 1.15, t('Fast', 'तेज़'))}</div>
           <div class="row wrap" style="margin-top:10px"><button class="btn ghost" data-test>🔊 ${t('Test voice', 'आवाज़ सुनें')}</button><button class="btn ghost" data-vcheck>🩺 ${t('Voice check', 'आवाज़ जाँच')}</button></div>
           <p class="small">${window.VO ? t(`Studio voice installed (${Object.keys(window.VO).length} clips).`, `स्टूडियो आवाज़ लगी है (${Object.keys(window.VO).length} क्लिप)।`) : t('Using the phone’s voice. For the best Hindi, install Google’s Hindi voice: Settings → Text-to-speech → Google → Install voice data → Hindi.', 'फ़ोन की आवाज़ इस्तेमाल हो रही है। अच्छी हिंदी के लिए: सेटिंग्स → टेक्स्ट-टू-स्पीच → Google → वॉइस डेटा → हिंदी इंस्टॉल करें।')}</p></div>
@@ -383,9 +387,10 @@
     qa('[data-set]').forEach((el) => {
       el.onclick = () => {
         K.sfx.tap(); const k = el.dataset.set; let v = el.dataset.val;
-        v = k === 'sound' ? v === 'true' : Number(v);
+        v = k === 'sound' ? v === 'true' : k === 'voiceLang' ? v : Number(v);
         K.state[k] = v; K.save(); parents('settings');
         if (k === 'speed') { say(t('This is how I will speak.', 'मैं ऐसे बोलूँगा।')); }
+        if (k === 'voiceLang') { K.sayT({ en: 'Hello! I will speak like this.', hi: 'नमस्ते! मैं ऐसे बोलूँगा।' }); }
       };
     });
     const vc = q('[data-vcheck]'); if (vc) { vc.onclick = () => { K.sfx.tap(); voiceCheck(); }; }

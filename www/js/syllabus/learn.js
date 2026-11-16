@@ -9,72 +9,119 @@
   const lab = (x) => (x == null ? '' : typeof x === 'string' ? x : x);
 
   // ================================================================ question pool from any activities
-  function poolOf(acts) {
-    const pool = [];
-    acts.forEach((a) => {
-      if ((a.type === 'quiz' || a.type === 'facts') && a.questions) { a.questions.forEach((q) => pool.push(q)); }
-      if (a.type === 'story' && a.questions) { a.questions.forEach((q) => pool.push({ emoji: a.emoji, q: q.q, options: q.options, answer: q.answer || 0 })); }
-      if (a.type === 'match' && a.pairs && a.pairs.length >= 3) {
-        a.pairs.forEach(([l, r], i) => { const wrong = shuffle(a.pairs.filter((_, j) => j !== i).map((p) => p[1])).slice(0, 2);
-          pool.push({ emoji: '🔗', q: T(`What goes with “${typeof l === 'string' ? l : l.en}”?`, `“${typeof l === 'string' ? l : l.hi}” के साथ क्या जाएगा?`), options: [lab(r), ...wrong.map(lab)], answer: 0 }); });
-      }
-      if (a.type === 'sort' && a.items && a.bins) {
-        a.items.filter((it) => it.name).forEach((it) => { const right = a.bins.find((b) => b.id === it.bin); if (!right) { return; }
-          pool.push({ emoji: it.e, q: T(`Where does “${it.name.en}” go?`, `“${it.name.hi}” कहाँ जाएगा?`), options: [right.label, ...a.bins.filter((b) => b.id !== it.bin).map((b) => b.label)].slice(0, 3), answer: 0 }); });
-      }
-      if (a.type === 'situation' && a.scenes) {
-        a.scenes.forEach((s) => { const good = s.choices.find((c) => c.good); if (!good) { return; }
-          pool.push({ emoji: s.emoji, q: T(`${s.text.en} – What is the right thing to do?`, `${s.text.hi} – सही क्या है?`), options: [good.t, ...s.choices.filter((c) => !c.good).map((c) => c.t)], answer: 0, explain: good.why }); });
-      }
-      if (a.type === 'order' && a.sets) {
-        a.sets.forEach((s) => { if (s.items.length >= 3) { pool.push({ emoji: s.items[0].e, q: T(`${s.prompt.en} – What comes FIRST?`, `${s.prompt.hi} – सबसे पहले क्या?`), options: [s.items[0].label, ...shuffle(s.items.slice(1)).slice(0, 2).map((x) => x.label)].filter(Boolean), answer: 0 }); } });
-      }
-    });
-    return pool.filter((q) => q && q.options && q.options.length >= 2);
-  }
-  // ---------------------------------------------------------------- more question shapes from teaching activities
+  // Every question is written in natural English and Hindi. When the lesson itself is in Hindi (Hindi words in the
+  // English slot), the Hindi wording is used for both, so a question never mixes the two languages.
+  const HI = /[ऀ-ॿ]/;
+  const en = (x) => (x == null ? '' : typeof x === 'object' ? (x.en ?? '') : String(x));
+  const hi = (x) => (x == null ? '' : typeof x === 'object' ? (x.hi ?? x.en ?? '') : String(x));
+  const isHiText = (...xs) => xs.some((x) => HI.test(en(x)));
+  /** sentence in both languages; Hindi-only content gets the Hindi sentence in both slots */
+  const S2 = (hiOnly, e, h) => (hiOnly ? { en: h, hi: h } : { en: e, hi: h });
   const key = (o) => (typeof o === 'string' ? o : JSON.stringify(o));
-  const first = (s) => String(s || '').split(/(?<=[.!?।])\s/)[0];
+  const first = (x) => String(x || '').split(/(?<=[.!?।])\s/)[0];
+  const firstOf = (o) => (typeof o === 'object' && o ? { en: first(o.en), hi: first(o.hi ?? o.en) } : first(o));
+  const short = (x, n = 70) => { const s = String(x); return s.length > n ? `${s.slice(0, n - 1).trim()}…` : s; };
   const wrongOf = (list, right, n = 2) => { const k = key(right); const seen = new Set([k]); const out = [];
     shuffle(list).forEach((x) => { const kx = key(x); if (!seen.has(kx) && out.length < n) { seen.add(kx); out.push(x); } }); return out; };
   const scramble = (w) => { for (let i = 0; i < 8; i++) { const s = shuffle(w.split('')).join(''); if (s !== w) { return s; } } return w.split('').reverse().join(''); };
   const misspell = (w) => { const v = 'AEIOU'; const i = [...w].findIndex((c, j) => j > 0 && v.includes(c)); return i > 0 ? w.slice(0, i) + v[(v.indexOf(w[i]) + 1) % 5] + w.slice(i + 1) : scramble(w); };
-  function morePool(acts, allMorals) {
+  const titleOf = (a) => a.title || { en: '', hi: '' };
+
+  function buildPool(acts, allMorals, random = false) {
     const pool = [];
-    const add = (emoji, q, right, wrongs, explain) => { if (wrongs.length >= 1) { pool.push({ emoji, q, options: [right, ...wrongs], answer: 0, explain }); } };
+    const add = (emoji, q, right, wrongs, explain) => {
+      const opts = [right, ...wrongs].filter((o) => o != null && en(o) !== '');
+      const uniq = [...new Map(opts.map((o) => [key(o), o])).values()];
+      const tidy = (x) => String(x).replace(/([?!।])”\s*\?/g, '$1”');
+      if (typeof q === 'object' && q) { q = { en: tidy(q.en), hi: tidy(q.hi ?? q.en) }; }
+      if (uniq.length >= 2 && key(uniq[0]) === key(right)) { pool.push({ emoji, q, options: uniq, answer: 0, explain }); }
+    };
     acts.forEach((a) => {
-      // facts / explainer cards: which card says this?
-      const notes = a.type === 'facts' ? (a.items || []).filter((it) => it.h && it.x).map((it) => ({ e: typeof it.pic === 'string' && !it.pic.startsWith('dia:') ? it.pic : (a.emoji || '💡'), h: it.h, x: it.x }))
+      // ready-made questions (quiz, facts, story) – normalised so the right answer is first
+      const own = (a.type === 'quiz' || a.type === 'facts' || a.type === 'story') && a.questions ? a.questions : [];
+      own.forEach((q) => { const i = q.answer || 0; const o = q.options || []; if (o[i] != null) { add(q.emoji || a.emoji, q.q, o[i], o.filter((_, j) => j !== i), q.explain); } });
+      // match pairs
+      if (a.type === 'match' && a.pairs && a.pairs.length >= 3) {
+        const rights = a.pairs.map((p) => p[1]);
+        a.pairs.forEach(([l, r]) => { const h = isHiText(l, r);
+          add('🔗', S2(h, `Which one goes with “${en(l)}”?`, `“${hi(l)}” के साथ कौन सा जोड़ा बनेगा?`), r, wrongOf(rights, r));
+          add('🔗', S2(h, `Which one goes with “${en(r)}”?`, `“${hi(r)}” के साथ कौन सा जोड़ा बनेगा?`), l, wrongOf(a.pairs.map((x) => x[0]), l)); });
+      }
+      // sort into groups
+      if (a.type === 'sort' && a.items && a.bins) {
+        a.items.filter((it) => it.name).forEach((it) => { const right = a.bins.find((b) => b.id === it.bin); if (!right) { return; } const h = isHiText(it.name);
+          add(it.e, S2(h, `Which group does “${en(it.name)}” belong to?`, `“${hi(it.name)}” किस समूह में जाएगा?`), right.label, a.bins.filter((b) => b.id !== it.bin).map((b) => b.label).slice(0, 2)); });
+      }
+      // what would you do?
+      if (a.type === 'situation' && a.scenes) {
+        a.scenes.forEach((sc) => { const good = sc.choices.find((c) => c.good); if (!good) { return; } const h = isHiText(sc.text);
+          const end = (x) => (/[.!?।]$/.test(x.trim()) ? x.trim() : `${x.trim()}.`);
+          add(sc.emoji, S2(h, `${end(en(sc.text))} What should you do?`, `${end(hi(sc.text))} तुम्हें क्या करना चाहिए?`), good.t, sc.choices.filter((c) => !c.good).map((c) => c.t), good.why); });
+      }
+      // put in order
+      if (a.type === 'order' && a.sets) {
+        const h = isHiText(titleOf(a)) || a.sets.some((st) => isHiText(st.prompt));
+        const topic = (x) => short(x, 48);
+        a.sets.forEach((st) => { const it = st.items.filter((x) => x.label); if (it.length < 3) { return; } const labs = it.map((x) => x.label);
+          add(it[0].e, S2(h, `${topic(en(titleOf(a)))}: which of these comes first?`, `${topic(hi(titleOf(a)))}: इनमें से सबसे पहले क्या आता है?`), it[0].label, wrongOf(labs.slice(1), null));
+          if (random) { return; }   // sets drawn at random: “what comes right after …” would change from play to play
+          it.slice(0, -1).forEach((x, i) => add(it[i + 1].e, S2(h, `${topic(en(titleOf(a)))}: what comes right after “${short(en(x.label), 50)}”?`, `${topic(hi(titleOf(a)))}: “${short(hi(x.label), 50)}” के ठीक बाद क्या आता है?`), it[i + 1].label, wrongOf(labs.filter((l, j) => j !== i + 1 && j !== i), null))); });
+      }
+      // facts / explainer cards: what is this about?
+      const notes = a.type === 'facts' ? (a.items || []).filter((it) => it.h && it.x).map((it) => ({ e: it.emoji || a.emoji || '💡', h: it.h, x: it.x }))
         : a.type === 'cards' && a.noCheck ? (a.items || []).filter((it) => it.word && it.note).map((it) => ({ e: it.emoji, h: it.word, x: it.note })) : [];
-      if (notes.length >= 3) { const hs = notes.map((n) => n.h); notes.forEach((n) => add(n.e || '💡', T(`Which one is this? “${first(n.x.en || n.x)}”`, `यह किसके बारे में है? “${first(n.x.hi || n.x)}”`), n.h, wrongOf(hs, n.h))); }
+      if (notes.length >= 3) { const hs = notes.map((n) => n.h); notes.forEach((n) => { const h = isHiText(n.x); const x = firstOf(n.x);
+        add(n.e || '💡', S2(h, `“${short(en(x), 110)}” – what is this about?`, `“${short(hi(x), 110)}” – यह किसके बारे में है?`), n.h, wrongOf(hs, n.h));
+        add(n.e || '💡', S2(h, `Which sentence is about “${short(en(n.h), 50)}”?`, `“${short(hi(n.h), 50)}” के बारे में कौन सा वाक्य है?`), x, wrongOf(notes.filter((o) => o !== n).map((o) => firstOf(o.x)), x)); }); }
+      // picture word cards
       if (a.type === 'cards' && !a.noCheck && a.items) {
         const its = a.items.filter((it) => it.emoji && it.word);
-        if (a.trace && its.length >= 3) { const bigs = its.map((it) => it.big); its.forEach((it) => add(it.emoji, T(`${it.emoji} ${typeof it.word === 'string' ? it.word : it.word.en} starts with…?`, `${it.emoji} ${typeof it.word === 'string' ? it.word : it.word.hi} किससे शुरू होता है?`), it.big, wrongOf(bigs, it.big))); }
-        else if (its.length >= 3) { const ws = its.map((it) => it.word); its.forEach((it) => add(it.emoji, T(`Which word is ${it.emoji}?`, `${it.emoji} कौन सा शब्द है?`), it.word, wrongOf(ws, it.word))); }
+        if (a.trace && its.length >= 3) { const bigs = its.map((it) => it.big); its.forEach((it) => { const h = isHiText(it.word, it.big);
+          add(it.emoji, S2(h, `Which letter does “${en(it.word)}” start with?`, `“${hi(it.word)}” किस अक्षर से शुरू होता है?`), it.big, wrongOf(bigs, it.big)); }); }
+        else if (its.length >= 3) { const ws = its.map((it) => it.word); its.forEach((it) => { const h = isHiText(it.word) && !(typeof it.word === 'object' && it.word.en && !HI.test(it.word.en));
+          add(it.emoji, S2(h, `Which word matches the picture ${it.emoji}?`, `चित्र ${it.emoji} के लिए सही शब्द कौन सा है?`), it.word, wrongOf(ws, it.word));
+          add('🔎', S2(h, `Which picture shows “${en(it.word)}”?`, `“${hi(it.word)}” का चित्र कौन सा है?`), it.emoji, wrongOf(its.map((x) => x.emoji), it.emoji)); }); }
       }
-      if (a.type === 'spell' && a.words) { a.words.forEach((w) => { if (w.w) { add(w.emoji, T(`Which spelling is right for ${w.emoji}?`, `${w.emoji} की सही वर्तनी?`), w.w, [...new Set([misspell(w.w), scramble(w.w)])].filter((x) => x !== w.w)); }
-        else if (w.tiles && w.tiles.length >= 2) { const r = w.tiles.join(''); add(w.emoji, T(`Which word is ${w.emoji}?`, `${w.emoji} कौन सा शब्द है?`), r, [...new Set([shuffle(w.tiles).join(''), [...w.tiles].reverse().join('')])].filter((x) => x !== r)); } }); }
-      if (a.type === 'sentence' && a.sentences) { a.sentences.forEach((s) => { if (s.words.length >= 3) { const r = s.words.join(' '); add(s.emoji, T('Which sentence is in the right order?', 'कौन सा वाक्य सही क्रम में है?'), r, [...new Set([shuffle(s.words).join(' '), [...s.words].reverse().join(' ')])].filter((x) => x !== r)); } }); }
-      if (a.type === 'poem' && Array.isArray(a.lines) && a.lines.length >= 4) { const L = a.lines.filter((l) => l && l.trim()); L.slice(0, -1).forEach((l, i) => { if (L[i + 1] !== l) { add(a.emoji || '🎵', T(`What comes next? “${l}”`, `आगे क्या आता है? “${l}”`), L[i + 1], wrongOf(L.filter((x, j) => j !== i + 1 && x !== L[i + 1]), L[i + 1])); } }); }
+      // spelling
+      if (a.type === 'spell' && a.words) { a.words.forEach((w) => {
+        if (w.w) { add(w.emoji, { en: `Which is the correct spelling for ${w.emoji}?`, hi: `${w.emoji} की सही स्पेलिंग कौन सी है?` }, w.w, [...new Set([misspell(w.w), scramble(w.w)])].filter((x) => x !== w.w)); }
+        else if (w.tiles && w.tiles.length >= 2) { const r = w.tiles.join(''); add(w.emoji, { en: `${w.emoji} के लिए सही शब्द कौन सा है?`, hi: `${w.emoji} के लिए सही शब्द कौन सा है?` }, r, [...new Set([shuffle(w.tiles).join(''), [...w.tiles].reverse().join('')])].filter((x) => x !== r)); } }); }
+      // sentences in the right order
+      if (a.type === 'sentence' && a.sentences) { a.sentences.forEach((st) => { if (st.words.length < 3) { return; } const r = st.words.join(' '); const h = HI.test(r);
+        add(st.emoji, S2(h, `Which sentence about ${st.emoji} has the words in the right order?`, `${st.emoji} वाले किस वाक्य में शब्द सही क्रम में हैं?`), r, [...new Set([shuffle(st.words).join(' '), [...st.words].reverse().join(' ')])].filter((x) => x !== r)); }); }
+      // poems: which line comes next?
+      if (a.type === 'poem' && Array.isArray(a.lines) && a.lines.length >= 4) { const L = a.lines.filter((l) => l && l.trim()); L.slice(0, -1).forEach((l, i) => { if (L[i + 1] === l) { return; } const h = HI.test(l);
+        add(a.emoji || '🎵', S2(h, `Which line comes after “${short(l, 80)}”?`, `“${short(l, 80)}” के बाद कौन सी पंक्ति आती है?`), L[i + 1], wrongOf(L.filter((x, j) => j !== i + 1 && x !== L[i + 1]), L[i + 1])); }); }
+      // stories: beginning, end and lesson (named, so different stories never look like the same question)
       if (a.type === 'story' && a.pages && a.pages.length >= 3) {
-        const S = a.pages.map((pg) => (pg.text ? { en: first(pg.text.en), hi: first(pg.text.hi) } : null)).filter(Boolean);
-        if (S.length >= 3) { add(a.emoji || '📖', T('What happened FIRST in the story?', 'कहानी में सबसे पहले क्या हुआ?'), S[0], [S[S.length - 1], S[Math.floor(S.length / 2)]]);
-          add(a.emoji || '📖', T('How did the story END?', 'कहानी का अंत कैसे हुआ?'), S[S.length - 1], [S[0], S[1]]); }
-        if (a.moral && allMorals.length > 3) { add('🌟', T('What does this story teach us?', 'यह कहानी क्या सिखाती है?'), a.moral, wrongOf(allMorals.filter((m) => key(m) !== key(a.moral)), a.moral)); }
+        const S = a.pages.map((pg) => (pg.text ? firstOf(pg.text) : null)).filter(Boolean); const h = isHiText(titleOf(a)) || isHiText(S[0]);
+        const nm = short(en(titleOf(a)).replace(/^[^:]*:\s*/, ''), 50); const nmh = short(hi(titleOf(a)).replace(/^[^:]*:\s*/, ''), 50);
+        if (S.length >= 3) {
+          add(a.emoji || '📖', S2(h, `How does the story “${nm}” begin?`, `कहानी “${nmh}” कैसे शुरू होती है?`), S[0], [S[S.length - 1], S[Math.floor(S.length / 2)]]);
+          add(a.emoji || '📖', S2(h, `How does the story “${nm}” end?`, `कहानी “${nmh}” का अंत कैसे होता है?`), S[S.length - 1], [S[0], S[1]]);
+          S.slice(0, -1).forEach((x, i) => { if (i === 0 || i % 2 === 1) { add(a.emoji || '📖', S2(h, `In “${nm}”, what happened after this? “${short(en(x), 90)}”`, `“${nmh}” में इसके बाद क्या हुआ? “${short(hi(x), 90)}”`), S[i + 1], wrongOf(S.filter((_, j) => j !== i + 1 && j !== i), S[i + 1])); } });
+        }
+        if (a.moral && allMorals.length > 3) { add('🌟', S2(h, `What does the story “${nm}” teach us?`, `कहानी “${nmh}” हमें क्या सिखाती है?`), a.moral, wrongOf(allMorals.filter((m) => key(m) !== key(a.moral)), a.moral)); }
       }
-      if (a.type === 'order' && a.sets) { a.sets.forEach((st) => { const it = st.items.filter((x) => x.label); if (it.length >= 3) { const labs = it.map((x) => x.label); it.slice(0, -1).forEach((x, i) => add(x.e, T(`${st.prompt.en} – What comes right after “${x.label.en || x.label}”?`, `${st.prompt.hi} – “${x.label.hi || x.label}” के ठीक बाद क्या?`), it[i + 1].label, wrongOf(labs.filter((l, j) => j !== i + 1 && j !== i), it[i + 1].label))); } }); }
-      if (a.type === 'bank' && K.bankSpec) { for (let i = 0; i < 3; i++) { const sp = K.bankSpec(a); if (sp) { poolOf([sp]).forEach((q) => pool.push(q)); morePool([sp], allMorals).forEach((q) => pool.push(q)); } } }
+      // question banks: build a few fresh sets
+      if (a.type === 'bank' && K.bankSpec) { for (let i = 0; i < 3; i++) { const sp = K.bankSpec({ ...a, title: a.title }); if (sp) { buildPool([{ ...sp, title: a.title }], allMorals, true).forEach((q) => pool.push(q)); } } }
     });
-    // de-duplicate questions
-    const seen = new Set(); return pool.filter((q) => { const k = key(q.q) + key(q.options[0]); if (seen.has(k)) { return false; } seen.add(k); return q.options.length >= 2; });
+    // one copy of each question (same picture, wording and right answer)
+    const seen = new Set();
+    return pool.filter((q) => { const k = `${q.emoji || ''}|${key(q.q)}|${key(q.options[0])}`; if (seen.has(k)) { return false; } seen.add(k); return true; });
   }
   // maths / play engines that have a matching question generator
   const ENGINE_GEN = { mathlab: (a) => ({ add: 'add', sub: 'sub', mul: 'tables', div: 'divide' }[a.op] || 'add'), clockset: () => 'clock', shop: () => 'money', countlab: () => 'count', tenframe: () => 'count', dots: () => 'count', pop: () => 'count', feed: () => 'count', numline: () => 'add', tables: () => 'tables', share: () => 'divide', fraction: () => 'fraction', pictograph: () => 'compare', scale: () => 'bigsmall', bundles: () => 'placevalue', shapes: () => 'shapes', mirror: () => 'shapes', bargraph: () => 'bargraph' };
   const gensOf = (acts) => [...new Set(acts.map((a) => { const g = a.type === 'gen' ? a.gen : ENGINE_GEN[a.type] && (a.world === 'maths' || (a.chapter || '').includes('maths') || a.type === 'mathlab' || a.type === 'clockset') ? ENGINE_GEN[a.type](a) : null; return g && K.GEN[g] ? `${g}|${a.level || ''}` : null; }).filter(Boolean))];
   let MORALS = null; const morals = () => (MORALS = MORALS || [...new Map(window.CUR.filter((a) => a.type === 'story' && a.moral).map((a) => [key(a.moral), a.moral])).values()]);
   /** build a practice activity for a list of acts; null if nothing to practise */
-  K.practiceAct = (id, title, acts, n = 10) => {
-    const gens = gensOf(acts); const pool = [...poolOf(acts), ...morePool(acts, morals())];
+  K.practiceAct = (id, title, acts, n = 10, review = []) => {
+    const gens = gensOf(acts); const pool = buildPool(acts, morals());
+    // small chapter: add a few revision questions from the chapters just before it, so each round feels new
+    if (pool.length >= 3 && pool.length < n + 4 && review.length) {
+      const have = new Set(pool.map((x) => key(x.q)));
+      shuffle(buildPool(review, morals())).filter((x) => !have.has(key(x.q))).slice(0, Math.min(4, n + 4 - pool.length)).forEach((x) => pool.push({ ...x, review: true }));
+    }
     if (gens.length && pool.length < n) {
       const key = `mix:${id}`;
       K.GEN[key] = (lv, r) => { const [g, l] = pick(gens).split('|'); return K.GEN[g](Number(l) || lv, r); };
