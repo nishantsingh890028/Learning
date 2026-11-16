@@ -20,10 +20,17 @@
     science: { emo: '🔬', c: 'c5', name: { en: 'Science', hi: 'विज्ञान' }, book: {} },
     social: { emo: '🗺️', c: 'c6', name: { en: 'Social Studies', hi: 'सामाजिक अध्ययन' }, book: {} },
     computers: { emo: '💻', c: 'c2', name: { en: 'Computers', hi: 'कंप्यूटर' }, book: {} },
+    pe: { emo: '🧘', c: 'c3', name: { en: 'Khel Yoga', hi: 'खेल योग' }, book: { c3: 'Khel Yoga' } },
+    arts: { emo: '🎨', c: 'c4', name: { en: 'Arts', hi: 'कला' }, book: { c3: 'Bansuri' } },
   };
   /** Subjects a class studies on a board. Class 4–5: CBSE keeps EVS (Our Wondrous World); ICSE and International split it into Science + Social Studies. */
   SYL.subjectsFor = (cls, board = 'cbse') => {
-    if (cls !== 'c4' && cls !== 'c5') { return ['english', 'hindi', 'maths', 'evs']; }
+    if (cls === 'bal') { return ['english', 'hindi', 'maths', 'evs']; }
+    if (cls !== 'c4' && cls !== 'c5') {   // Classes 1–3
+      if (board === 'icse') { return ['english', 'hindi', 'maths', 'evs', 'computers']; }
+      if (board === 'intl') { return ['english', 'hindi', 'maths', 'evs', 'social', 'computers']; }
+      return cls === 'c3' ? ['english', 'hindi', 'maths', 'evs', 'pe', 'arts'] : ['english', 'hindi', 'maths', 'evs'];
+    }
     return board === 'cbse' ? ['english', 'hindi', 'maths', 'evs', 'computers'] : ['english', 'hindi', 'maths', 'science', 'social', 'computers'];
   };
   SYL.BOARDS = [
@@ -36,7 +43,17 @@
   /** chapters for a class/subject/board. Pre-primary is shared; International Hindi uses the ICSE Hindi course. */
   SYL.chaptersFor = (cls, sub, board = 'cbse') => {
     const b = cls === 'bal' ? 'cbse' : board === 'intl' && sub === 'hindi' ? 'icse' : board;
-    return SYL.chapters.filter((c) => c.cls === cls && c.sub === sub && c.board === b);
+    const list = SYL.chapters.filter((c) => c.cls === cls && c.sub === sub && c.board === b).sort((x, y) => (x.ord ?? x.no) - (y.ord ?? y.no));
+    list.forEach((c, i) => { if (c.book === undefined) { c.dno = i + 1; } });   // shown chapter number = position in the list
+    return list;
+  };
+  /** Put a subject's chapters in textbook order. `nos` = chapter numbers (as registered) in the order of the book; every other
+   *  chapter of that subject becomes a practice chapter after the book. First two in order are the free ones. */
+  SYL.bookOrder = (board, cls, sub, nos, rename = {}) => {
+    const chs = SYL.chapters.filter((c) => c.board === board && c.cls === cls && c.sub === sub);
+    nos.forEach((no, i) => { const c = chs.find((x) => x.no === no); if (!c) { throw new Error(`bookOrder: ${board} ${cls} ${sub} ${no}`); } c.ord = i + 1; c.book = true; c.dno = i + 1; });
+    let k = nos.length; chs.filter((c) => c.ord == null).sort((a, b) => a.no - b.no).forEach((c) => { c.ord = ++k; c.book = false; });
+    chs.forEach((c) => { c.free = c.ord <= 2; c.acts.forEach((a) => { a.free = c.free; }); if (rename[c.no]) { c.title = rename[c.no]; } });
   };
   SYL.classForAge = (age) => (age <= 5 ? 'bal' : age === 6 ? 'c1' : age === 7 ? 'c2' : age === 8 ? 'c3' : age === 9 ? 'c4' : 'c5');
   const LV = SYL.LV = { bal: 1, c1: 2, c2: 2, c3: 3, c4: 4, c5: 4 };
@@ -54,7 +71,7 @@
     SYL.chapters.push(ch);
     return ch;
   };
-  const SKILL = { english: ['vocabulary', 'reading', 'listening'], hindi: ['reading', 'vocabulary', 'listening'], maths: ['numbers', 'calculation', 'logic'], evs: ['science', 'knowledge'], science: ['science', 'knowledge', 'logic'], social: ['knowledge', 'values'], computers: ['logic', 'knowledge'] };
+  const SKILL = { english: ['vocabulary', 'reading', 'listening'], hindi: ['reading', 'vocabulary', 'listening'], maths: ['numbers', 'calculation', 'logic'], evs: ['science', 'knowledge'], science: ['science', 'knowledge', 'logic'], social: ['knowledge', 'values'], computers: ['logic', 'knowledge'], pe: ['movement', 'values'], arts: ['creativity', 'music'] };
 
   // ---------------------------------------------------------------- builders
   const T = (en, hi) => ({ en, hi });

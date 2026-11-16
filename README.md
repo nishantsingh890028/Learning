@@ -1,4 +1,10 @@
-# Khel Khel Mein: Play & Learn (Android) – v4.0
+# Khel Khel Mein: Play & Learn (Android) – v4.1
+
+## What's new in v4.1
+- **Every NCERT chapter for Classes 1–3, in book order:** Sarangi 1 (19), Mridang 2 (13), Sarangi 2 (26), Santoor 3 (12), Veena 3 (18), plus Class 3 **Khel Yoga** (7) and **Arts – Bansuri**. Extra grammar chapters now come after the book, marked ✎ "Practice".
+- **ICSE Classes 1–3:** English literature (stories, classic poems, comprehension, writing), Hindi stories and poems, EVS social-studies chapters, and **Computers**.
+- **International Stages 1–3:** the same English and Hindi additions, **Global Perspectives** and **Computing**.
+- Fun worlds say which class they are for, and show lessons made just for that class first.
 
 ## What's new in v4.0
 - **Classes 4 and 5** for CBSE (Santoor, Veena, Maths Mela, Our Wondrous World + Computers), ICSE (English, Hindi, Maths, Science, Social Studies, Computers) and International (English, Maths, Science, Global Perspectives, Hindi, Computing). Ages 9–11 map to Class 4–5.
