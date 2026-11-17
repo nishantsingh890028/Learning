@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Art Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Mukta:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* A gallery at dusk: deep walnut walls, warm lamp-gold accents. Layout: the painting large on the left, the studio controls on the right; stacks on phones. */
+:root{
+  --wall:#1d1612; --panel:#2a201a; --panel2:#3a2c23; --ink:#fbf3e4; --muted:#d3c2ab; --gold:#e8b84a; --kumkum:#c8402e; --line:#4a382c;
+  --display:"Cormorant Garamond", Georgia, serif; --body:"Mukta", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--wall);color:var(--ink);font:16px/1.45 var(--body);background-image:radial-gradient(ellipse at 30% 0%,rgba(232,184,74,.12),transparent 55%)}
+header{max-width:1240px;margin:0 auto;padding:16px 20px 8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+h1{font:700 clamp(1.7rem,3.6vw,2.4rem) var(--display);margin:0;letter-spacing:.3px}
+h1 span{color:var(--gold)}
+.pill{border-radius:999px;padding:6px 12px;font-weight:600;font-size:.9rem;background:var(--panel2)}
+.pill.ok{background:#21452f;color:#d6f5df}.pill.bad{background:#5a221a;color:#ffd9d2}
+main{max-width:1240px;margin:0 auto;padding:8px 20px 28px;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+main>*{min-width:0}
+.easel{position:relative;background:#120d0a;border-radius:16px;box-shadow:0 0 0 1px var(--line),0 20px 50px rgba(0,0,0,.5);display:grid;place-items:center;min-height:300px;overflow:hidden}
+.easel img{display:block;width:100%;height:auto}
+.easel .empty{padding:40px 24px;text-align:center;color:var(--muted);max-width:520px}
+.easel .empty b{display:block;font:700 1.6rem var(--display);color:var(--ink);margin-bottom:6px}
+.progress{position:absolute;inset:0;background:rgba(18,13,10,.72);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px}
+.progress .brush{width:64px;height:64px;border-radius:50%;border:5px solid var(--line);border-top-color:var(--gold);animation:spin 1.1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.progress .brush{animation:none}}
+.thumbs{display:flex;gap:10px;overflow-x:auto;padding:12px 2px}
+.thumbs button{flex:0 0 auto;border:2px solid transparent;border-radius:10px;padding:0;background:none;cursor:pointer;overflow:hidden}
+.thumbs button[aria-pressed="true"]{border-color:var(--gold)}
+.thumbs img{display:block;height:84px;width:auto}
+.label{font-size:.8rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.panel{background:var(--panel);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.panel h2{font:700 1.45rem var(--display);margin:0}
+.group{display:flex;flex-direction:column;gap:7px}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:0;background:var(--panel2);color:var(--ink);font:600 .92rem var(--body);padding:7px 11px;border-radius:10px;cursor:pointer;min-height:38px}
+.chip[aria-pressed="true"]{background:var(--ink);color:#2a1a10}
+.btn{border:0;border-radius:12px;padding:11px 16px;font:800 1rem var(--body);cursor:pointer;min-height:46px}
+.btn.gold{background:var(--gold);color:#2a1a00}.btn.red{background:var(--kumkum);color:#fff}.btn.ghost{background:var(--panel2);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+textarea,input[type=text]{width:100%;border:0;border-radius:12px;padding:10px 12px;font:600 1rem var(--body);background:var(--ink);color:#2a1a10}
+textarea{min-height:76px;resize:vertical}
+.hint{font-size:.9rem;color:var(--muted);margin:0}
+.msg{border-radius:12px;padding:10px 12px;background:var(--panel2);font-weight:600}
+.msg.err{background:#5a221a}
+.setup{border:1px dashed var(--gold);border-radius:14px;padding:12px 14px}
+.setup ol{margin:6px 0 0;padding-left:20px}.setup li{margin:4px 0}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+[hidden]{display:none!important}
+.modal{position:fixed;inset:0;background:rgba(10,7,5,.86);z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px}
+.room{position:relative;width:min(1000px,100%);aspect-ratio:16/10;border-radius:14px;overflow:hidden;background:linear-gradient(#ece2d0 0 72%,#b99a74 72%);display:flex;align-items:center;justify-content:center}
+.room::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 10%,rgba(255,248,230,.75),transparent 60%)}
+.room .art{position:relative;margin-bottom:9%;box-shadow:0 22px 34px rgba(30,18,8,.45)}
+.room .art img{display:block;width:100%;height:100%;object-fit:cover}
+.room .sofa{position:absolute;left:20%;right:20%;bottom:7%;height:17%;background:#5b6b4f;border-radius:20px 20px 8px 8px;box-shadow:inset 0 -16px 0 rgba(0,0,0,.18)}
+.room .plant{position:absolute;right:7%;bottom:7%;width:7%;height:30%;background:radial-gradient(circle at 50% 30%,#4f7a45 0 45%,transparent 46%),linear-gradient(transparent 60%,#8a5a3a 60%);border-radius:8px}
+.frame-walnut{border:14px solid #4a2f1d;outline:2px solid #2b1b10;padding:0}
+.frame-gold{border:14px solid #c9a24a;outline:3px solid #7a5a1a;box-shadow:inset 0 0 0 3px #f1d27a}
+.frame-black{border:12px solid #151515}
+.frame-canvas{border:0}
+footer{max-width:1240px;margin:0 auto;padding:0 20px 24px;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>Art <span>Studio</span></h1>
+  <span class="pill" id="engine" role="status">Checking the painting engine…</span>
+</header>
+<main>
+  <section>
+    <div class="easel" id="easel">
+      <div class="empty" id="empty"><b>Your painting appears here</b>Describe what you want, pick a style and size, and press Paint. Ready ideas are on the right.</div>
+      <img id="art" alt="Your painting" hidden>
+      <div class="progress" id="progress" hidden><div class="brush" aria-hidden="true"></div><div id="progText" style="font-weight:800;font-size:1.1rem">Painting…</div><div class="hint" id="progSub"></div><button class="btn ghost" id="cancelBtn">Stop after this one</button></div>
+    </div>
+    <div class="thumbs" id="thumbs" aria-label="Your paintings"></div>
+    <p class="hint" id="galleryNote"></p>
+  </section>
+
+  <aside style="display:flex;flex-direction:column;gap:16px">
+    <div class="setup" id="setup" hidden>
+      <b>Connect the painting engine on your Mac</b>
+      <ol>
+        <li>Install <b>Draw Things</b> (free) from the Mac App Store.</li>
+        <li>In Draw Things, choose the model <b>FLUX.1 [schnell]</b> and let it download (one time).</li>
+        <li>Open Draw Things <b>Settings → API Server</b>, switch it on (HTTP, port 7860).</li>
+        <li>Keep Draw Things open, then press <b>Check again</b>.</li>
+      </ol>
+      <div class="row" style="margin-top:8px"><button class="btn ghost" id="recheck">Check again</button></div>
+    </div>
+
+    <div class="panel">
+      <h2>Paint anything</h2>
+      <label class="label" for="subject">What should we paint?</label>
+      <textarea id="subject">Varanasi ghats at sunrise, boats on the Ganga, temples glowing in golden light, pilgrims on the steps</textarea>
+      <div class="row" id="ideas"></div>
+      <div class="group"><span class="label">Art style</span><div class="row" id="styles"></div></div>
+      <div class="group"><span class="label">Size and shape</span><div class="row" id="frames"></div><p class="hint" id="frameHint"></p></div>
+      <div class="group"><span class="label">Quality</span><div class="row" id="quality"></div></div>
+      <div class="group"><span class="label">How many to paint</span><div class="row" id="counts"></div></div>
+      <button class="btn gold" id="paintBtn">🎨 Paint</button>
+      <div class="msg" id="msg" hidden></div>
+      <label class="btn ghost" style="text-align:center">📷 Turn my photo into a painting<input type="file" id="photo" accept="image/*" hidden></label>
+    </div>
+
+    <div class="panel" id="custom" aria-disabled="true">
+      <h2>Customise this painting</h2>
+      <p class="hint" id="customHint">Paint something first, or pick one from your paintings.</p>
+      <div class="row" id="changes"></div>
+      <input type="text" id="changeText" placeholder="Or type a change: add a full moon, more boats, a woman in a red saree…">
+      <div class="group"><span class="label">How big a change?</span><div class="row" id="strength"></div></div>
+      <div class="row"><button class="btn red" id="applyBtn">Apply change</button><button class="btn ghost" id="variantBtn">🎲 2 variations</button></div>
+      <div class="row"><button class="btn ghost" id="wallBtn">🖼️ See it on my wall</button><button class="btn ghost" id="bigBtn">🔍 Print-ready (2× sharper)</button></div>
+      <div class="row"><a class="btn gold" id="saveBtn" download>⬇ Save picture</a><button class="btn ghost" id="shareBtn" hidden>Share</button></div>
+    </div>
+  </aside>
+</main>
+<footer>Paintings are made on your own Mac by an open-source model, saved in Pictures → Art Studio, and are yours to keep and print. Nothing is sent to an outside service.</footer>
+
+<div class="modal" id="wall" hidden role="dialog" aria-modal="true" aria-label="Painting on your wall">
+  <div class="room"><div class="art" id="wallArt"><img id="wallImg" alt="Your painting on a wall"></div><div class="plant"></div><div class="sofa"></div></div>
+  <div class="row" id="frameStyles"></div>
+  <button class="btn gold" id="closeWall">Done</button>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const STYLES = {
+  knife:{ name:'Palette-knife oil', p:'vibrant palette-knife oil painting on canvas, thick impasto strokes, glowing warm light, rich saturated colours, expressive impressionist brushwork, fine art' },
+  classical:{ name:'Classical oil (1880s)', p:'19th-century realist oil painting, soft natural daylight, fine detail, warm earthy palette, museum-quality fine art, in the manner of Edwin Lord Weeks' },
+  watercolour:{ name:'Watercolour', p:'loose watercolour painting, soft translucent washes, delicate details, textured paper, luminous light' },
+  madhubani:{ name:'Madhubani', p:'Madhubani folk painting, bold black outlines, flat bright red yellow green and blue colours, intricate patterns filling every space, decorative border' },
+  tanjore:{ name:'Tanjore', p:'Tanjore painting, rich gold leaf, deep jewel colours, ornate decorative details, traditional South Indian art' },
+  pichwai:{ name:'Pichwai', p:'Pichwai painting from Nathdwara, lotus flowers, cows and trees, intricate fine details, deep rich colours, traditional Indian art' },
+  miniature:{ name:'Mughal miniature', p:'Mughal miniature painting, extremely fine detail, flat perspective, jewel tones, ornate gold floral border' },
+  kerala:{ name:'Kerala mural', p:'Kerala mural painting, ochre red green and yellow palette, ornate stylised figures, temple wall art' },
+  photo:{ name:'Photo-real', p:'golden-hour fine art photograph, cinematic light, highly detailed, sharp focus' },
+};
+const FRAMES = { wide:[1344,768,'Wide 16:9','Fits canvases like 60×34 in, 48×27 in'], land:[1152,896,'Landscape 4:3','Fits 40×30 in, 24×18 in'], port:[896,1152,'Portrait 3:4','Fits 30×40 in, 18×24 in'],
+  tall:[768,1344,'Tall 9:16','Fits narrow walls and staircases'], square:[1024,1024,'Square','Fits 36×36 in, 24×24 in'], pano:[1408,704,'Panorama 2:1','Fits 72×36 in above a sofa'] };
+const IDEAS = ['🛕 Varanasi ghats at sunrise, boats on the Ganga, temples glowing in golden light, pilgrims on the steps','🪔 Ganga aarti at dusk, priests raising brass lamps, crowds on the ghats, boats with diyas',
+  '🧘 Buddha meditating under the bodhi tree, golden halo, lotus pond, peaceful morning light','🛶 Kerala backwaters, houseboat among coconut palms, calm water reflections at sunset',
+  '🏰 Rajasthan desert fort at golden hour, camels and travellers on the dunes','🏔️ Himalayan monastery above the clouds, prayer flags, snowy peaks','🦚 Peacock dancing in a monsoon garden, rain, lush green',
+  '🌸 Village women carrying water from a stepwell, colourful sarees, morning light','🎨 Holi festival in a narrow lane, clouds of coloured powder, joyful people','🌕 Taj Mahal in moonlight, reflection in the long pool',
+  '🐘 Decorated elephants at a Kerala temple festival, parasols and lamps','🪷 Lotus pond with herons at dawn, mist over the water'];
+const CHANGES = [['🌙 Night','turn it into a calm moonlit night with glowing lamps'],['🌅 Sunrise','golden sunrise light'],['🌧️ Monsoon','rainy monsoon, wet reflections, dark clouds'],['🪔 Festive','add many glowing diyas, marigold garlands and lanterns'],
+  ['⛵ More boats','add more wooden boats on the water'],['🕊️ Birds','add birds flying in the sky'],['🚶 Fewer people','remove most of the people, peaceful and empty'],['🔥 Warmer','warmer, richer golden colours'],['❄️ Cooler','cooler blue and violet colours']];
+const NEG = 'text, words, letters, watermark, signature, logo, blurry, low quality, deformed hands, extra fingers, distorted faces, cropped';
+const st = { style:'knife', frame:'wide', quality:'best', count:2, strength:'medium', engine:null, items:[], sel:-1, busy:false, stop:false, wallFrame:'walnut' };
+const STR = { small:.35, medium:.55, big:.75 };
+
+// ---------- small UI helpers ----------
+function chips(el, list, key, after){ el.innerHTML = list.map(([v,l])=>`<button class="chip" data-v="${v}" aria-pressed="${String(st[key])===String(v)}">${l}</button>`).join('');
+  el.onclick=(e)=>{ const b=e.target.closest('.chip'); if(!b) return; st[key]= typeof st[key]==='number' ? Number(b.dataset.v) : b.dataset.v; el.querySelectorAll('.chip').forEach((x)=>x.setAttribute('aria-pressed',x===b)); after && after(); }; }
+const msg = (t, err) => { const m=$('#msg'); m.hidden=!t; m.textContent=t||''; m.classList.toggle('err',!!err); };
+const fmt = (s) => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+async function api(path, body){ const r = await fetch(path, body ? { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) } : {}); const j = await r.json().catch(()=>({error:'The studio server did not answer properly.'})); if (!r.ok || j.error) throw new Error(j.error || `Error ${r.status}`); return j; }
+function prompt(subject, extra){ return `${subject}${extra?`, ${extra}`:''}. ${STYLES[st.style].p}. Beautiful composition, rich detail, wall art for a home.`; }
+function stepsFor(q){ const s = st.engine && st.engine.steps; if (q==='best') return s || undefined; return s ? Math.max(2, Math.round(s/2)) : 2; }
+
+// ---------- painting engine status ----------
+async function checkEngine(){ const p=$('#engine'); try { const s=await api('/api/status'); st.engine=s.ok?s:null;
+    if (s.ok){ p.className='pill ok'; p.textContent=`Painting engine ready${s.model?` · ${s.model.replace(/\.ckpt$/,'')}`:''}`; $('#setup').hidden=true; }
+    else { p.className='pill bad'; p.textContent='Painting engine not connected'; $('#setup').hidden=false; } }
+  catch(e){ p.className='pill bad'; p.textContent='Studio server not reachable'; $('#setup').hidden=false; } }
+$('#recheck').onclick=checkEngine;
+
+// ---------- the painting, the strip of paintings ----------
+function show(i){ st.sel=i; const it=st.items[i]; const img=$('#art'); img.src=it.src; img.hidden=false; $('#empty').hidden=true;
+  $('#thumbs').querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-pressed', j===i));
+  const a=$('#saveBtn'); a.href=it.src; a.setAttribute('download', it.file || 'painting.png');
+  $('#custom').setAttribute('aria-disabled','false'); $('#customHint').textContent = it.subject ? `“${it.subject.slice(0,90)}${it.subject.length>90?'…':''}”` : 'From your saved paintings.';
+  $('#shareBtn').hidden = !(navigator.canShare); }
+function addItem(it, select=true){ st.items.unshift(it); renderThumbs(); if (select) show(0); }
+function renderThumbs(){ $('#thumbs').innerHTML = st.items.map((it,i)=>`<button aria-label="Painting ${i+1}" aria-pressed="${i===st.sel}"><img src="${it.src}" alt="" loading="lazy"></button>`).join(''); }
+$('#thumbs').onclick=(e)=>{ const b=e.target.closest('button'); if(!b) return; show([...$('#thumbs').children].indexOf(b)); };
+async function loadGallery(){ try { const g=await api('/api/gallery'); g.files.forEach((f)=>st.items.push({ src:`/gallery/${encodeURIComponent(f)}`, file:f, saved:true })); renderThumbs(); if (st.items.length) show(0);
+  $('#galleryNote').textContent = g.files.length ? `${g.files.length} painting${g.files.length>1?'s':''} saved on your Mac (Pictures → Art Studio).` : ''; } catch(e){} }
+async function asBase64(it){ if (it.b64) return it.b64; const blob=await (await fetch(it.src)).blob(); return await new Promise((r)=>{ const fr=new FileReader(); fr.onload=()=>r(String(fr.result).split(',')[1]); fr.readAsDataURL(blob); }); }
+async function sizeOf(it){ if (it.w) return [it.w,it.h]; const im=new Image(); im.src=it.src; await im.decode(); return [im.naturalWidth, im.naturalHeight]; }
+
+// ---------- painting jobs (one at a time, each shown as soon as it is ready) ----------
+async function run(jobs, label){
+  if (st.busy) return; if (!st.engine){ await checkEngine(); if (!st.engine){ msg('The painting engine is not connected yet. Follow the steps above, then try again.', true); return; } }
+  st.busy=true; st.stop=false; setBusy(true); msg(''); let done=0;
+  for (let i=0;i<jobs.length && !st.stop;i++){ const t0=Date.now(); $('#progText').textContent = jobs.length>1 ? `${label} ${i+1} of ${jobs.length}…` : `${label}…`;
+    const tick=setInterval(()=>{ $('#progSub').textContent=`${fmt((Date.now()-t0)/1000)} so far. On a MacBook a painting usually takes 1–3 minutes.`; },500);
+    try { const r = await api(jobs[i].path, jobs[i].body); done++;
+      addItem({ src:`data:image/png;base64,${r.image}`, b64:r.image, file:r.file, subject:jobs[i].subject, w:jobs[i].body.width, h:jobs[i].body.height }); }
+    catch(e){ msg(e.message, true); clearInterval(tick); break; }
+    clearInterval(tick); }
+  st.busy=false; setBusy(false); if (done) msg(`Done! Saved on your Mac in Pictures → Art Studio. Customise it below, or paint again.`);
+}
+function setBusy(on){ $('#progress').hidden=!on; ['#paintBtn','#applyBtn','#variantBtn','#bigBtn'].forEach((s)=>{ $(s).disabled=on; }); }
+$('#cancelBtn').onclick=()=>{ st.stop=true; $('#progSub').textContent='Stopping after this painting…'; };
+$('#paintBtn').onclick=()=>{ const subject=$('#subject').value.trim(); if (!subject){ msg('Describe what you would like painted first.', true); $('#subject').focus(); return; }
+  const [w,h]=FRAMES[st.frame]; run(Array.from({length:st.count},()=>({ path:'/api/generate', subject, body:{ prompt:prompt(subject), negative:NEG, width:w, height:h, seed:-1, steps:stepsFor(st.quality), label:subject } })), 'Painting'); };
+async function change(extra, strength, count=1){ const it=st.items[st.sel]; if(!it){ msg('Paint or pick a painting first.', true); return; }
+  const [w,h]=await sizeOf(it); const image=await asBase64(it); const subject=(it.subject||$('#subject').value.trim());
+  run(Array.from({length:count},()=>({ path:'/api/edit', subject: extra ? `${subject}, ${extra}` : subject, body:{ image, prompt:prompt(subject, extra), negative:NEG, width:w, height:h, seed:-1, strength, steps:stepsFor('best'), label:`${subject} ${extra||'variation'}` } })), count>1?'Variation':'Changing'); }
+$('#changes').innerHTML = CHANGES.map(([l,t])=>`<button class="chip" data-t="${t}">${l}</button>`).join('');
+$('#changes').onclick=(e)=>{ const b=e.target.closest('.chip'); if(!b) return; $('#changeText').value=b.dataset.t; };
+$('#applyBtn').onclick=()=>{ const t=$('#changeText').value.trim(); if(!t){ msg('Pick or type the change you want.', true); $('#changeText').focus(); return; } change(t, STR[st.strength]); };
+$('#variantBtn').onclick=()=>change('', .45, 2);
+$('#bigBtn').onclick=async ()=>{ const it=st.items[st.sel]; if(!it) return; const [w,h]=await sizeOf(it); const k=Math.min(2, 2688/Math.max(w,h)); if (k<1.2){ msg('This painting is already at the largest size the studio makes.'); return; }
+  const image=await asBase64(it); run([{ path:'/api/upscale', subject:it.subject, body:{ image, prompt:prompt(it.subject||''), negative:NEG, width:Math.round(w*k/64)*64, height:Math.round(h*k/64)*64, seed:-1, upscaler: (st.engine && st.engine.upscaler) || undefined, label:`${it.subject||'painting'} print` } }], 'Making it print-ready'); };
+$('#photo').onchange=async (e)=>{ const f=e.target.files[0]; if(!f) return; const [w,h]=FRAMES[st.frame];
+  const im=new Image(); im.src=URL.createObjectURL(f); await im.decode(); const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d');
+  const k=Math.max(w/im.naturalWidth,h/im.naturalHeight); x.drawImage(im,(w-im.naturalWidth*k)/2,(h-im.naturalHeight*k)/2,im.naturalWidth*k,im.naturalHeight*k);
+  const image=c.toDataURL('image/png').split(',')[1]; const subject=$('#subject').value.trim() || 'a beautiful scene';
+  run([{ path:'/api/edit', subject:`${subject} (from my photo)`, body:{ image, prompt:`Repaint this photo as a painting. ${STYLES[st.style].p}. Keep the composition and the main shapes.`, negative:NEG, width:w, height:h, seed:-1, strength:.62, steps:stepsFor('best'), label:'my photo painting' } }], 'Turning your photo into a painting'); e.target.value=''; };
+$('#shareBtn').onclick=async ()=>{ const it=st.items[st.sel]; if(!it) return; try { const blob=await (await fetch(it.src)).blob(); const file=new File([blob], it.file||'painting.png', {type:'image/png'}); await navigator.share({ files:[file], title:'My painting' }); } catch(e){} };
+
+// ---------- wall preview ----------
+const WALLF = [['walnut','Walnut frame'],['gold','Gold frame'],['black','Black frame'],['canvas','Gallery canvas']];
+async function openWall(){ const it=st.items[st.sel]; if(!it) return; const [w,h]=await sizeOf(it); const a=$('#wallArt'); const portrait=h>w;
+  a.style.width = portrait ? '24%' : (w/h>1.9 ? '56%' : '46%'); a.style.aspectRatio=`${w}/${h}`; $('#wallImg').src=it.src; setWallFrame(); $('#wall').hidden=false; $('#closeWall').focus(); }
+function setWallFrame(){ $('#wallArt').className=`art frame-${st.wallFrame}`; }
+chips($('#frameStyles'), WALLF, 'wallFrame', setWallFrame);
+$('#wallBtn').onclick=openWall; $('#closeWall').onclick=()=>{ $('#wall').hidden=true; };
+
+// ---------- controls ----------
+$('#ideas').innerHTML = IDEAS.map((t)=>`<button class="chip" data-t="${t.replace(/^\S+\s/,'')}">${t.split(',')[0]}</button>`).join('');
+$('#ideas').onclick=(e)=>{ const b=e.target.closest('.chip'); if(!b) return; $('#subject').value=b.dataset.t; };
+chips($('#styles'), Object.entries(STYLES).map(([k,v])=>[k,v.name]), 'style');
+chips($('#frames'), Object.entries(FRAMES).map(([k,v])=>[k,v[2]]), 'frame', ()=>{ $('#frameHint').textContent=FRAMES[st.frame][3]; }); $('#frameHint').textContent=FRAMES[st.frame][3];
+chips($('#quality'), [['quick','⚡ Quick'],['best','✨ Best']], 'quality');
+chips($('#counts'), [[1,'1'],[2,'2'],[4,'4']], 'count');
+chips($('#strength'), [['small','Small'],['medium','Medium'],['big','Big']], 'strength');
+checkEngine(); loadGallery();
+})();
+</script>
+</body>
+</html>
