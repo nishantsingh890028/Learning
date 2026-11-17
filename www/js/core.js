@@ -9,7 +9,7 @@ window.K = (() => {
     entitlement: 'full',
     priceFallback: '₹299',
     demoUnlock: true,                                         // browser preview only; never unlocks in the Android app
-    version: '4.3.0',
+    version: '4.4.0',
     // Testing: everything unlocked. Set to false before publishing so the Full Pack purchase works.
     unlockAll: true,
     dailyCount: 5,

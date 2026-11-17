@@ -71,15 +71,16 @@ input[type=range]{width:100%;accent-color:var(--haldi)}
 #learnGuide .final{transform-origin:200px 200px}
 @media (prefers-reduced-motion:reduce){#learnGuide .now,#learnGuide .final{animation:none}.sw.flash{animation:none}}
 #colorSvg .r{cursor:pointer}
-#createSvg{overflow:hidden}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px}
+.lcard{position:relative;border:0;background:var(--panel2);color:var(--ink);font:600 .85rem/1.15 var(--body);padding:8px 4px 7px;border-radius:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:72px}
+.lcard .em{font-size:1.7rem;line-height:1.1}
+.lcard[aria-pressed="true"]{background:var(--ink);color:#1a1240;box-shadow:0 0 0 3px var(--haldi)}
+.lcard .star{position:absolute;top:2px;right:4px;font-size:.8rem}
+#learnGuide.tappable .part{cursor:pointer}
+#learnGuide .demo{fill:none;stroke:#ec4e9c;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+#learnGuide .pen{font-size:28px;pointer-events:none}
 #colorSvg text{font-family:var(--body);font-weight:800;fill:#7a6aa8;pointer-events:none}
 #learnGuide .inked{fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
-.wall{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#efe6d6 0 74%,#c9b391 74% 100%)}
-.wall::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,rgba(255,250,235,.7),transparent 60%)}
-.wall .frame{position:relative;max-width:62%;max-height:56%;margin-bottom:12%;border:10px solid #3b2a1a;background:#fffdf7;padding:14px;box-shadow:0 18px 30px rgba(40,25,10,.35)}
-.wall .frame img{display:block;width:100%;height:100%;object-fit:contain}
-.wall .sofa{position:absolute;left:18%;right:18%;bottom:8%;height:15%;background:#2f6f6a;border-radius:18px 18px 8px 8px;box-shadow:inset 0 -14px 0 rgba(0,0,0,.18)}
-.wall .lamp{position:absolute;right:8%;bottom:8%;width:5%;height:38%;background:linear-gradient(#f7c531 0 18%,#5b4636 18%);border-radius:40% 40% 4px 4px}
 textarea{width:100%;min-height:72px;resize:vertical;border:0;border-radius:14px;padding:10px 12px;font:600 1rem var(--body);background:var(--ink);color:#1a1240}
 .status{background:var(--panel2);border-radius:12px;padding:10px 12px;font-weight:600}
 .status.busy::before{content:"🎨 ";}
@@ -90,11 +91,10 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 24px;color:var(--muted);fon
 <header>
   <h1>Rangoli <span>&amp;</span> Mandala Studio</h1>
   <nav class="tabs" role="tablist" aria-label="Studio modes">
-    <button class="tab" role="tab" id="tab-create" aria-selected="true" data-mode="create">🪄 Create</button>
+    <button class="tab" role="tab" id="tab-learn" aria-selected="true" data-mode="learn">✏️ Learn to draw</button>
     <button class="tab" role="tab" id="tab-paint" aria-selected="false" data-mode="paint">🖌️ Magic Paint</button>
     <button class="tab" role="tab" id="tab-draw" aria-selected="false" data-mode="draw">✨ Mirror Draw</button>
     <button class="tab" role="tab" id="tab-color" aria-selected="false" data-mode="color">🎨 Colour</button>
-    <button class="tab" role="tab" id="tab-learn" aria-selected="false" data-mode="learn">✏️ Learn</button>
   </nav>
 </header>
 
@@ -109,30 +109,9 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 24px;color:var(--muted);fon
       <svg id="colorSvg" viewBox="-260 -260 520 520" hidden aria-label="Design to colour"></svg>
       <svg id="learnGuide" viewBox="0 0 400 400" hidden aria-hidden="true"></svg>
       <canvas id="learnCv" hidden></canvas>
-      <svg id="createSvg" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid meet" hidden aria-label="Your painting"></svg>
-      <canvas id="sketchCv" hidden></canvas>
-      <div id="wallView" hidden></div>
       <canvas id="fxCv" style="pointer-events:none"></canvas>
     </div>
   </div>
-
-  <!-- ===================== Create ===================== -->
-  <section class="panel" id="panel-create" aria-labelledby="tab-create">
-    <h2>Paint anything you imagine</h2>
-    <label class="label" for="cPrompt">What should we paint?</label>
-    <textarea id="cPrompt" placeholder="Type anything: Buddha under a bodhi tree, Varanasi ghats at sunrise, peacock in the rain…">Buddha meditating under a bodhi tree at sunrise with lotus flowers</textarea>
-    <p class="hint">It paints as you type. Every idea, style and frame you tap changes the picture right away.</p>
-    <div class="row" id="ideaRow"></div>
-    <div class="group"><span class="label">Art style</span><div class="row" id="cstyleRow"></div></div>
-    <div class="group"><span class="label">Frame</span><div class="row" id="aspectRow"></div></div>
-    <div class="row"><button class="chip" id="sketchBtn" aria-pressed="false" hidden>✏️ Start from my sketch</button><button class="btn ghost" id="clearSketchBtn" hidden>Clear sketch</button></div>
-    <div class="row"><button class="btn alt" id="variantBtn">🎲 New variation</button><button class="btn magic" id="paintBtn">✨ Paint with AI (more detail)</button><button class="btn ghost" id="stopBtn" hidden>Stop</button></div>
-    <div class="status" id="cStatus" role="status">Painting…</div>
-    <div class="group" id="remixGroup"><span class="label">Change it</span><div class="row" id="remixRow"></div>
-      <div class="row"><input id="remixText" class="chip" style="flex:1;min-width:160px;background:var(--ink);color:#1a1240" placeholder="e.g. add a temple bell and pigeons"><button class="btn ghost" id="remixGo">Change</button></div></div>
-    <div class="row"><button class="chip" id="wallBtn" aria-pressed="false">🖼️ See it on my wall</button></div>
-    <div class="row"><button class="btn main" id="savePngBtn">Save for printing (4K)</button><button class="btn ghost" id="saveSvgBtn">Save as SVG (any size)</button></div>
-  </section>
 
   <!-- ===================== Magic Paint ===================== -->
   <section class="panel" id="panel-paint" aria-labelledby="tab-paint" hidden>
@@ -194,11 +173,18 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 24px;color:var(--muted);fon
   <!-- ===================== Learn ===================== -->
   <section class="panel" id="panel-learn" aria-labelledby="tab-learn" hidden>
     <h2>Learn to draw, step by step</h2>
-    <div class="group"><span class="label">Choose a picture</span><div class="row" id="lessonRow"></div></div>
+    <div class="row" id="catRow" role="group" aria-label="Kind of picture"></div>
+    <div class="lgrid" id="lessonRow"></div>
+    <p class="hint" id="learnProgress"></p>
     <div class="steps-bar" id="stepsBar"></div>
-    <div class="step" id="stepText"></div>
+    <div class="step" id="stepText" aria-live="polite"></div>
+    <div class="row">
+      <button class="chip" id="showMeBtn">👀 Show me how</button>
+      <button class="chip" id="mixBtn" hidden>🎲 Surprise colours</button>
+      <button class="chip" id="speakBtn" aria-pressed="false">🔊 Read steps aloud</button>
+      <button class="chip" id="lacBtn" aria-pressed="true">🪄 Snap to perfect</button>
+    </div>
     <div class="group"><span class="label">Pen colour</span><div class="swatches" id="swLearn"></div></div>
-    <div class="row"><button class="chip" id="lacBtn" aria-pressed="true">🪄 Snap to perfect</button></div>
     <div class="row">
       <button class="btn ghost" id="prevStep">◀ Back</button>
       <button class="btn main" id="nextStep">I drew it ▶</button>
@@ -207,7 +193,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 24px;color:var(--muted);fon
     <button class="btn alt" id="saveLearnBtn">Save picture</button>
   </section>
 </main>
-<footer>Every design and picture here is original and made fresh in the app. Tip for grown-ups: Mirror Draw with 16 mirrors and the Gold brush makes a beautiful festive mandala.</footer>
+<footer>Every design and picture here is original and made fresh in the app. Learn to draw has fruits, animals, things around us and Indian art; finish a picture to earn its star. Tip for grown-ups: Mirror Draw with 16 mirrors and the Gold brush makes a beautiful festive mandala.</footer>
 
 <div class="modal" id="saveModal" hidden role="dialog" aria-modal="true" aria-labelledby="saveTitle">
   <div class="card">
@@ -285,15 +271,15 @@ function setChip(el, v){ el.querySelectorAll('.chip').forEach((x)=>x.setAttribut
 // stage, sizing and the shared magic layer (animations + sparkles)
 // =====================================================================================
 const stage=$('#stage');
-const cv = { sky:$('#skyCv'), paint:$('#paintCv'), bg:$('#bgCv'), ink:$('#inkCv'), guide:$('#guideCv'), learn:$('#learnCv'), sketch:$('#sketchCv'), fx:$('#fxCv') };
+const cv = { sky:$('#skyCv'), paint:$('#paintCv'), bg:$('#bgCv'), ink:$('#inkCv'), guide:$('#guideCv'), learn:$('#learnCv'), fx:$('#fxCv') };
 const cx = Object.fromEntries(Object.entries(cv).map(([k,c])=>[k,c.getContext('2d')]));
 let W = 600; const DPR = Math.min(window.devicePixelRatio || 1, 2);
 function fit(){
   const w = Math.round(stage.clientWidth); if (!w || (w===W && cv.ink.width>0)) return;
-  const keep = {}; ['paint','ink','learn','sketch'].forEach((k)=>{ const t=document.createElement('canvas'); t.width=cv[k].width; t.height=cv[k].height; if (t.width) t.getContext('2d').drawImage(cv[k],0,0); keep[k]=t; });
+  const keep = {}; ['paint','ink','learn'].forEach((k)=>{ const t=document.createElement('canvas'); t.width=cv[k].width; t.height=cv[k].height; if (t.width) t.getContext('2d').drawImage(cv[k],0,0); keep[k]=t; });
   W = w;
   Object.entries(cv).forEach(([k,c]) => { c.width = Math.round(w*DPR); c.height = Math.round(w*DPR); cx[k].setTransform(DPR,0,0,DPR,0,0); });
-  ['paint','ink','learn','sketch'].forEach((k)=>{ if (keep[k].width) cx[k].drawImage(keep[k],0,0,w,w); });
+  ['paint','ink','learn'].forEach((k)=>{ if (keep[k].width) cx[k].drawImage(keep[k],0,0,w,w); });
   paintSky(); paintBg(); paintGuides();
 }
 function pt(e){ const r=stage.getBoundingClientRect(); return {x:(e.clientX-r.left)*W/r.width, y:(e.clientY-r.top)*W/r.height}; }
@@ -726,26 +712,184 @@ const LESSONS = {
     S('Add a ring of dots between the two lines.', [ambiDots], '#fff8e7', true),
     S('Draw a little vine growing toward the tip.', ['M178 210 Q214 182 252 140','M200 196 q4 -16 20 -12','M226 172 q4 -16 20 -12'], '#3ba55c', false)] },
 };
-let lesson='flower', stepIx=0, strokes=[], inked={}, cov={}; const SAMPLES={}; const kOf=(si,i)=>`${lesson}|${si}|${i}`;
+// ---- extra lessons: fruits, animals, things around us (all in a 400 x 400 space) ----
+const E = (x,y,rx,ry)=>`M${x-rx},${y}a${rx},${ry} 0 1,0 ${2*rx},0a${rx},${ry} 0 1,0 ${-2*rx},0`;
+function rayRing(cx0,cy0,n,rIn,rOut,half){ let d=''; for(let i=0;i<n;i++){ const a=i*2*Math.PI/n, p=(r,t)=>`${(cx0+Math.cos(t)*r).toFixed(1)} ${(cy0+Math.sin(t)*r).toFixed(1)}`;
+  d+=`M${p(rIn,a-half)}L${p(rOut,a)}L${p(rIn,a+half)}Z`; } return d; }
+const dots = (list,r)=>list.map(([x,y])=>C(x,y,r)).join('');
+const MORE_LESSONS = {
+  // ------------------------------------------------ fruits
+  mango:{ name:'🥭 Mango', cat:'fruits', order:[0,1,2,3], halo:'#f7b32b', steps:[
+    S('Draw a big round mango shape, a bit like a fat bean.', ['M210 110 C290 100 340 170 322 250 C304 330 214 360 152 332 C90 304 82 222 120 170 C146 134 172 114 210 110 Z'], '#f7b32b', true),
+    S('Draw a short stem on top.', ['M206 112 C204 96 206 84 214 72'], '#7a4a1f', false),
+    S('Draw a long leaf coming out of the stem.', ['M214 80 C240 54 292 52 318 68 C294 96 246 100 214 80 Z'], '#3ba55c', true),
+    S('Add a shine line so it looks juicy.', ['M142 214 Q146 184 170 162'], '#fffbe6', false)] },
+  apple:{ name:'🍎 Apple', cat:'fruits', order:[0,2,1,3,4], halo:'#ff6b6b', steps:[
+    S('Draw the apple: two round bumps on top, coming together at the bottom.', ['M200 132 C170 110 110 112 92 170 C74 232 110 320 160 336 C180 342 190 334 200 330 C210 334 220 342 240 336 C290 320 326 232 308 170 C290 112 230 110 200 132 Z'], '#d7263d', true),
+    S('Draw the stem going up from the dip.', ['M200 134 C198 112 202 94 212 78'], '#7a4a1f', false),
+    S('Draw a leaf next to the stem.', ['M208 98 C228 70 272 66 294 80 C272 106 232 112 208 98 Z'], '#3ba55c', true),
+    S('Draw the vein in the middle of the leaf.', ['M214 96 Q252 84 286 80'], '#1f7a3a', false),
+    S('Add a shine on the left.', ['M124 196 Q128 164 154 148'], '#fffbe6', false)] },
+  banana:{ name:'🍌 Banana', cat:'fruits', order:[0,1,2,3], halo:'#f7e04b', steps:[
+    S('Draw a long smile shape, thick in the middle and thin at the ends.', ['M100 146 C112 262 222 322 330 268 C340 262 336 248 324 250 C228 278 156 236 130 138 C126 124 100 128 100 146 Z'], '#f7d02c', true),
+    S('Draw a line along the banana to show its edge.', ['M114 162 C142 244 220 282 318 262'], '#c9a227', false),
+    S('Draw the little stem at the top end.', ['M102 140 L92 108 L112 102 L124 132 Z'], '#6b4a1f', true),
+    S('Add the dark tip at the other end.', ['M324 250 C338 248 344 262 334 270 C330 262 328 256 324 250 Z'], '#4a3216', true)] },
+  strawberry:{ name:'🍓 Strawberry', cat:'fruits', order:[0,1,3,2], halo:'#ff8fab', steps:[
+    S('Draw a big heart-like berry, round on top and pointy at the bottom.', ['M200 334 C140 302 100 222 120 172 C140 130 260 130 280 172 C300 222 260 302 200 334 Z'], '#e63946', true),
+    S('Draw a crown of pointy leaves on top.', ['M128 168 L156 138 L174 158 L200 128 L226 158 L244 138 L272 168 C240 184 160 184 128 168 Z'], '#3ba55c', true),
+    S('Draw a little stem.', ['M200 134 Q204 110 216 96'], '#2d7a3e', false),
+    S('Add tiny seeds all over.', [dots([[160,200],[200,196],[240,200],[176,236],[224,236],[150,240],[250,240],[200,266],[176,282],[224,282],[200,306]],5)], '#ffe066', true)] },
+  watermelon:{ name:'🍉 Watermelon', cat:'fruits', order:[0,1,2,3], halo:'#7bd389', steps:[
+    S('Draw a big bowl shape: a half circle with a straight top.', ['M70 170 A130 130 0 0 0 330 170 Z'], '#2d9a4b', true),
+    S('Draw a thin line just inside the bowl.', ['M82 170 A118 118 0 0 0 318 170 Z'], '#d8f3b8', true),
+    S('Draw a smaller bowl inside: the juicy part.', ['M94 170 A106 106 0 0 0 306 170 Z'], '#ef476f', true),
+    S('Add black seeds.', [dots([[150,200],[200,212],[250,200],[176,244],[224,244],[200,272]],7)], '#2a1d4f', true)] },
+  // ------------------------------------------------ animals
+  cat:{ name:'🐱 Cat', cat:'animals', order:[3,2,1,0,4,5], halo:'#f7a541', steps:[
+    S('Draw a circle for the head.', [C(200,150,62)], '#f28c1e', true),
+    S('Draw two pointy ears on top of the head.', ['M150 118 L150 64 L190 96 Z','M250 118 L250 64 L210 96 Z'], '#f28c1e', true),
+    S('Draw the body under the head, like a bell.', ['M150 330 C140 262 160 210 200 206 C240 210 260 262 250 330 Z'], '#f7a541', true),
+    S('Draw a curly tail on the right.', ['M248 322 C304 322 324 278 302 238 C296 228 284 234 290 244 C306 276 290 302 246 302 Z'], '#f28c1e', true),
+    S('Draw two eyes and a little nose.', [C(178,142,7), C(222,142,7), 'M193 160 L207 160 L200 169 Z'], '#2a1d4f', true),
+    S('Draw whiskers and a smile.', ['M138 166 L182 172 M138 184 L182 178 M262 166 L218 172 M262 184 L218 178','M200 169 Q192 182 184 176 M200 169 Q208 182 216 176'], '#2a1d4f', false)] },
+  fish:{ name:'🐟 Fish', cat:'animals', order:[1,2,0,5,3,4], halo:'#4cc9f0', steps:[
+    S('Draw the body: a leaf shape lying down.', ['M90 200 C140 130 250 130 300 200 C250 270 140 270 90 200 Z'], '#0e9aa7', true),
+    S('Draw the tail: a triangle at the back.', ['M290 200 L350 150 C340 180 340 220 350 250 Z'], '#f28c1e', true),
+    S('Draw a fin on top and a small one below.', ['M170 150 C188 112 230 114 248 154 Z','M188 252 C198 282 232 280 238 248 Z'], '#f7a541', true),
+    S('Draw a big round eye.', [C(140,190,13)], '#fffbe6', true),
+    S('Add the dark middle of the eye.', [C(137,190,6)], '#2a1d4f', true),
+    S('Draw curvy lines for the scales.', ['M190 168 q14 32 0 64 M220 162 q16 38 0 76 M250 170 q12 30 0 60'], '#155e75', false)] },
+  butterfly:{ name:'🦋 Butterfly', cat:'animals', order:[1,2,4,0,3], halo:'#c77dff', steps:[
+    S('Draw a long thin body in the middle.', ['M200 120 C210 120 212 140 210 200 C208 260 204 290 200 290 C196 290 192 260 190 200 C188 140 190 120 200 120 Z'], '#3d2c8d', true),
+    S('Draw two big wings at the top, one on each side.', ['M196 160 C150 90 70 90 74 150 C78 200 140 214 196 200 Z','M204 160 C250 90 330 90 326 150 C322 200 260 214 204 200 Z'], '#c77dff', true),
+    S('Draw two smaller wings at the bottom.', ['M196 206 C140 210 100 250 120 290 C140 320 186 290 198 240 Z','M204 206 C260 210 300 250 280 290 C260 320 214 290 202 240 Z'], '#ec4e9c', true),
+    S('Draw two curly feelers on the head.', ['M196 124 Q184 94 166 82 M204 124 Q216 94 234 82'], '#3d2c8d', false),
+    S('Add round spots on the wings.', [C(124,148,16), C(276,148,16), C(150,262,10), C(250,262,10)], '#f7c531', true)] },
+  turtle:{ name:'🐢 Turtle', cat:'animals', order:[2,0,1,3,4], halo:'#80ed99', steps:[
+    S('Draw the shell: a big dome.', ['M110 240 C110 160 290 160 290 240 Z'], '#2d9a4b', true),
+    S('Draw the head peeking out on the right.', [C(316,224,26)], '#95d5b2', true),
+    S('Draw two feet under the shell and a small tail.', ['M128 238 C122 272 162 274 160 238 Z','M240 238 C238 274 278 272 272 238 Z','M114 232 L94 241 L114 246 Z'], '#95d5b2', true),
+    S('Draw a pattern on the shell: a six-sided shape with lines.', ['M180 196 L220 196 L234 218 L220 240 L180 240 L166 218 Z','M180 196 L160 178 M220 196 L240 178 M166 218 L122 218 M234 218 L278 218'], '#1b5e30', false),
+    S('Add the eye and a smile.', [C(324,218,4.5),'M318 234 Q328 240 338 232'], '#2a1d4f', false)] },
+  horse:{ name:'🐴 Horse', cat:'animals', order:[2,0,1,3,4,5], halo:'#e0a96d', steps:[
+    S('Draw the body: a long oval.', ['M120 200 C120 168 162 160 220 162 C282 164 302 182 302 210 C302 240 272 252 212 252 C152 252 120 236 120 200 Z'], '#b5651d', true),
+    S('Draw the neck going up and the long head pointing down.', ['M262 178 C270 140 284 108 304 90 C314 82 328 84 336 94 L360 126 C366 136 358 148 346 145 L322 136 C314 156 306 180 300 206 Z'], '#b5651d', true),
+    S('Draw four long legs.', ['M140 240 L136 330 H152 L158 240 Z','M170 244 L168 330 H184 L186 244 Z','M256 244 L254 330 H270 L272 244 Z','M282 236 L284 330 H300 L298 230 Z'], '#a0571a', true),
+    S('Draw dark hooves at the bottom of each leg.', ['M134 328 H154 V342 H134 Z','M166 328 H186 V342 H166 Z','M252 328 H272 V342 H252 Z','M282 328 H302 V342 H282 Z'], '#3d2a1a', true),
+    S('Draw a flowing mane on the neck and a swishy tail.', ['M302 92 C286 110 274 140 264 176 C278 162 284 150 290 140 C294 128 298 114 308 100 Z','M124 190 C90 190 74 232 86 282 C100 252 110 226 126 214 Z'], '#5a3418', true),
+    S('Add a pointy ear and an eye.', ['M316 88 L320 64 L332 90 Z', C(332,110,4.5)], '#3d2a1a', true)] },
+  elephant:{ name:'🐘 Elephant', cat:'animals', order:[3,0,2,1,4,5], halo:'#a3b1c6', steps:[
+    S('Draw the big round body.', ['M150 170 C200 150 282 160 302 210 C314 250 302 282 282 292 L160 292 C130 282 120 200 150 170 Z'], '#8d99ae', true),
+    S('Draw a round head in front.', [C(132,184,54)], '#8d99ae', true),
+    S('Draw the long trunk curling at the end.', ['M92 206 C78 248 82 292 66 318 C60 328 72 336 80 326 C100 298 102 254 110 218 Z'], '#8d99ae', true),
+    S('Draw four thick legs.', ['M162 280 V336 H188 V280 Z','M200 280 V336 H226 V280 Z','M246 280 V336 H272 V280 Z','M276 270 V336 H300 V262 Z'], '#7a869a', true),
+    S('Draw a big floppy ear.', ['M146 146 C178 136 204 168 198 210 C194 242 166 248 150 230 C140 210 138 170 146 146 Z'], '#b8c0d0', true),
+    S('Add the eye, a tusk and a little tail.', [C(116,176,5),'M98 222 Q84 240 70 236','M302 216 Q322 232 316 258'], '#2a1d4f', false)] },
+  // ------------------------------------------------ things around us
+  house:{ name:'🏠 House', cat:'things', order:[5,0,1,2,3,4,6], halo:'#ffd166', steps:[
+    S('Draw a big square for the walls.', ['M110 192 H290 V340 H110 Z'], '#f7c531', true),
+    S('Draw a triangle roof on top.', ['M90 198 L200 96 L310 198 Z'], '#d7263d', true),
+    S('Draw a door with a round top.', ['M178 340 V272 Q200 250 222 272 V340 Z'], '#8e5a2b', true),
+    S('Draw two square windows.', ['M128 220 H166 V258 H128 Z','M234 220 H272 V258 H234 Z'], '#4cc9f0', true),
+    S('Draw a plus sign in each window and a knob on the door.', ['M147 220 V258 M128 239 H166','M253 220 V258 M234 239 H272', C(212,308,4)], '#3d2c8d', false),
+    S('Draw a chimney on the roof.', ['M244 138 V92 H270 V162 Z'], '#a0522d', true),
+    S('Finish with grass along the bottom.', ['M60 342 H340','M80 342 l6 -16 l6 16 M120 342 l6 -16 l6 16 M268 342 l6 -16 l6 16 M310 342 l6 -16 l6 16'], '#3ba55c', false)] },
+  tree:{ name:'🌳 Tree', cat:'things', order:[0,1,2,3], halo:'#95d5b2', steps:[
+    S('Draw the trunk: two lines that get wider at the bottom.', ['M182 362 C188 300 186 250 180 210 L220 210 C214 250 212 300 218 362 Z'], '#8e5a2b', true),
+    S('Draw a big fluffy cloud of leaves on top.', ['M200 70 C240 60 276 90 270 120 C306 124 320 170 290 196 C300 230 260 250 230 236 C214 256 180 256 166 236 C136 250 100 230 110 196 C80 172 94 126 130 120 C126 92 160 66 200 70 Z'], '#3ba55c', true),
+    S('Add round fruits on the leaves.', [C(150,160,11), C(240,138,11), C(200,196,11), C(262,200,11), C(170,110,11)], '#e63946', true),
+    S('Draw grass at the bottom.', ['M110 362 H290','M130 362 l6 -14 l6 14 M250 362 l6 -14 l6 14'], '#2d9a4b', false)] },
+  sun:{ name:'☀️ Sun', cat:'things', order:[1,0,2,3], halo:'#ffd166', steps:[
+    S('Draw a big circle in the middle.', [C(200,200,72)], '#f7c531', true),
+    S('Draw pointy rays all around, like a crown.', [rayRing(200,200,12,82,142,.17)], '#f28c1e', true),
+    S('Draw two happy eyes.', [C(176,186,8), C(224,186,8)], '#3d2c1f', true),
+    S('Draw a big smile.', ['M166 216 Q200 250 234 216'], '#3d2c1f', false)] },
+  star:{ name:'⭐ Star', cat:'things', order:[0,1,2], halo:'#ffe066', steps:[
+    S('Draw a star with five points: up, right, down-right, down-left, left.', ['M200 70 L234 160 L330 162 L254 220 L282 314 L200 258 L118 314 L146 220 L70 162 L166 160 Z'], '#f7c531', true),
+    S('Draw two eyes in the middle.', [E(182,196,7,10), E(218,196,7,10)], '#3d2c1f', true),
+    S('Draw a little smile.', ['M184 226 Q200 240 216 226'], '#3d2c1f', false)] },
+  kite:{ name:'🪁 Kite', cat:'things', order:[0,1,2,3], halo:'#f49ac1', steps:[
+    S('Draw a diamond: up, right, down, left.', ['M200 64 L292 176 L200 306 L108 176 Z'], '#ec4e9c', true),
+    S('Draw a cross inside the kite.', ['M200 64 V306 M108 176 H292'], '#3d2c8d', false),
+    S('Draw the wavy string hanging down.', ['M200 306 C180 330 226 344 206 368 C196 380 206 388 214 390'], '#3d2c8d', false),
+    S('Add little bows on the string.', ['M196 330 L178 320 L178 340 Z M196 330 L214 320 L214 340 Z','M208 364 L190 354 L190 374 Z M208 364 L226 354 L226 374 Z'], '#f7c531', true)] },
+  boat:{ name:'⛵ Boat', cat:'things', order:[0,2,3,1,5,4], halo:'#90e0ef', steps:[
+    S('Draw the boat: a wide shape like a bowl with flat top.', ['M80 268 H320 L280 318 H120 Z'], '#8e5a2b', true),
+    S('Draw a tall straight mast.', ['M200 268 V80'], '#5a3418', false),
+    S('Draw a big sail on the right.', ['M208 92 L208 254 L304 254 Z'], '#fdf6e3', true),
+    S('Draw a smaller sail on the left.', ['M192 112 L192 254 L118 254 Z'], '#f28c1e', true),
+    S('Draw waves under the boat.', ['M50 332 q25 -14 50 0 t50 0 t50 0 t50 0 t50 0 t50 0'], '#0e9aa7', false),
+    S('Add a little flag at the top.', ['M200 80 L236 92 L200 104 Z'], '#d7263d', true)] },
+  car:{ name:'🚗 Car', cat:'things', order:[0,1,2,3,4], halo:'#ff8fa3', steps:[
+    S('Draw the car body: a long box with a bump on top.', ['M70 260 V222 Q72 206 90 204 L130 200 L160 160 Q166 152 178 152 L262 152 Q274 152 282 162 L310 200 L322 202 Q340 206 340 224 V260 Z'], '#d7263d', true),
+    S('Draw two windows in the top bump.', ['M168 168 L144 200 H196 V168 Z','M210 168 V200 H286 L262 168 Z'], '#90e0ef', true),
+    S('Draw two big round wheels.', [C(130,262,30), C(282,262,30)], '#2a2a3a', true),
+    S('Draw a small circle inside each wheel.', [C(130,262,12), C(282,262,12)], '#c0c4d0', true),
+    S('Add a headlight at the front.', [C(328,222,8)], '#f7c531', true)] },
+};
+// lessons come in four shelves; the Indian-art ones were the first five
+Object.values(LESSONS).forEach((l)=>{ l.cat='indian'; }); LESSONS.ambi.name='🌀 Paisley (Ambi)';
+Object.assign(LESSONS, MORE_LESSONS);
+const CATS = [['fruits','🍎 Fruits'],['animals','🐾 Animals'],['things','🏠 Things'],['indian','🪷 Indian art']];
+let lesson='apple', learnCat='fruits', stepIx=0, strokes=[], inked={}, cov={}; const SAMPLES={}; const kOf=(si,i)=>`${lesson}|${si}|${i}`;
+let learned = {}; try { learned = JSON.parse(localStorage.getItem('rangoli-learned')||'{}') || {}; } catch(e){}
+try { const sv=JSON.parse(localStorage.getItem('rangoli-lesson')||'null'); if (sv && LESSONS[sv.l]) { lesson=sv.l; learnCat=LESSONS[sv.l].cat; } } catch(e){}
+const recolor = {}; // lesson -> {stepIndex: colour} chosen by tapping the finished picture
+const lname = (L)=>L.name.replace(/^\S+\s/,''); const lemoji = (L)=>L.name.split(' ')[0];
+function partColour(i){ const o=recolor[lesson]; return (o && o[i]) || LESSONS[lesson].steps[i].c; }
+function gradStops(c){ return `<stop offset="0" stop-color="${shade(c,55)}"/><stop offset=".6" stop-color="${c}"/><stop offset="1" stop-color="${shade(c,-25)}"/>`; }
+let spokenKey='';
 function renderLearn(){
   const L=LESSONS[lesson]; const n=L.steps.length; const done = stepIx>=n; let out='';
-  if (done){ const defs = L.steps.map((s,i)=>`<radialGradient id="lg${i}" cx="45%" cy="35%" r="75%"><stop offset="0" stop-color="${shade(s.c,55)}"/><stop offset=".6" stop-color="${s.c}"/><stop offset="1" stop-color="${shade(s.c,-25)}"/></radialGradient>`).join('');
+  if (done){ const defs = L.steps.map((s,i)=>`<radialGradient id="lg${i}" cx="45%" cy="35%" r="75%">${gradStops(partColour(i))}</radialGradient>`).join('');
     out = `<defs>${defs}<radialGradient id="halo"><stop offset="0" stop-color="${L.halo}" stop-opacity=".45"/><stop offset="1" stop-color="${L.halo}" stop-opacity="0"/></radialGradient><filter id="ls" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#2a1d4f" flood-opacity=".3"/></filter></defs><circle cx="200" cy="210" r="190" fill="url(#halo)"/>`;
-    L.order.forEach((i)=>{ const s=L.steps[i]; s.d.forEach((d)=>{ out += s.f ? `<path class="final" d="${d}" fill="url(#lg${i})" stroke="${shade(s.c,-35)}" stroke-width="2.5" filter="url(#ls)"/>` : `<path class="final" d="${d}" fill="none" stroke="${s.c==='#fff8e7'?'#d4a72c':s.c}" stroke-width="4"/>`; }); }); }
+    L.order.forEach((i)=>{ const s=L.steps[i], c=partColour(i); s.d.forEach((d)=>{ out += s.f ? `<path class="final part" data-s="${i}" d="${d}" fill="url(#lg${i})" stroke="${shade(c,-35)}" stroke-width="2.5" filter="url(#ls)"/>` : `<path class="final part" data-s="${i}" d="${d}" fill="none" stroke="${c==='#fff8e7'?'#d4a72c':c}" stroke-width="4"/>`; }); }); }
   else L.steps.forEach((s,i)=>{ if (i>stepIx) return; s.d.forEach((d,j)=>{ const ink=inked[kOf(i,j)]; out += ink ? `<path class="inked" d="${d}" stroke="${ink}"/>` : `<path class="${i<stepIx?'done':'now'}" d="${d}"/>`; }); });
   $('#learnGuide').innerHTML = out; cv.learn.style.opacity = done ? .3 : 1;
+  cv.learn.style.pointerEvents = done ? 'none' : ''; $('#learnGuide').classList.toggle('tappable', done);
   $('#stepsBar').innerHTML = L.steps.map((_,i)=>`<i class="${i<stepIx||done?'on':''}"></i>`).join('');
-  $('#stepText').innerHTML = done ? `<b>Magic!</b> Your ${L.name.replace(/^\S+\s/,'').toLowerCase()} came to life in colour. Save it, or choose another picture.` : `<b>Step ${stepIx+1} of ${n}.</b> ${L.steps[stepIx].t}`;
+  $('#stepText').innerHTML = done ? `<b>Magic!</b> Your ${lname(L).toLowerCase()} came to life. <b>Tap any part</b> to paint it with your pen colour, then save it.` : `<b>Step ${stepIx+1} of ${n}.</b> ${L.steps[stepIx].t}`;
   $('#prevStep').disabled = stepIx===0; $('#nextStep').textContent = done ? 'Draw it again' : stepIx===n-1 ? 'Finish ✨' : 'I drew it ▶';
+  $('#showMeBtn').hidden = done; $('#mixBtn').hidden = !done;
+  const key=lesson+'|'+stepIx; if (state.speak && state.mode==='learn' && key!==spokenKey){ spokenKey=key; say(done ? `Well done! You drew a ${lname(L)}. Tap the picture to colour it.` : L.steps[stepIx].t); }
 }
-const lr = $('#lessonRow'); lr.innerHTML = Object.entries(LESSONS).map(([k,l])=>`<button class="chip" data-v="${k}" aria-pressed="${k===lesson}">${l.name}</button>`).join('');
+function say(text){ try { const u=new SpeechSynthesisUtterance(text); u.rate=.92; u.pitch=1.1; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch(e){} }
+function renderShelf(){
+  $('#catRow').innerHTML = CATS.map(([k,t])=>`<button class="chip" data-c="${k}" aria-pressed="${k===learnCat}">${t}</button>`).join('');
+  $('#lessonRow').innerHTML = Object.entries(LESSONS).filter(([,l])=>l.cat===learnCat).map(([k,l])=>`<button class="lcard" data-v="${k}" aria-pressed="${k===lesson}" aria-label="${lname(l)}${learned[k]?', drawn':''}"><span class="em">${lemoji(l)}</span><span>${lname(l)}</span>${learned[k]?'<span class="star">⭐</span>':''}</button>`).join('');
+  const total=Object.keys(LESSONS).length, got=Object.keys(learned).filter((k)=>LESSONS[k]).length;
+  $('#learnProgress').innerHTML = `<b>⭐ ${got} of ${total}</b> pictures drawn${got===total?' — you are a drawing star!':''}`;
+}
+function pickLesson(k){ lesson=k; stepIx=0; resetLearnInk(); try { localStorage.setItem('rangoli-lesson', JSON.stringify({l:k})); } catch(e){} renderShelf(); renderLearn(); }
+$('#catRow').onclick=(e)=>{ const b=e.target.closest('.chip'); if(!b) return; learnCat=b.dataset.c; const first=Object.keys(LESSONS).find((k)=>LESSONS[k].cat===learnCat); if (LESSONS[lesson].cat!==learnCat) pickLesson(first); else renderShelf(); };
+$('#lessonRow').onclick=(e)=>{ const b=e.target.closest('.lcard'); if(!b) return; pickLesson(b.dataset.v); chime(587,.25); };
 function resetLearnInk(){ strokes=[]; inked={}; cov={}; redrawLearn(); }
-lr.onclick=(e)=>{ const b=e.target.closest('.chip'); if(!b) return; lesson=b.dataset.v; stepIx=0; resetLearnInk(); lr.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderLearn(); };
-function advance(){ const n=LESSONS[lesson].steps.length; stepIx++; if(stepIx>=n){ confetti(); arpeggio(); setTimeout(()=>{ for(let i=0;i<6;i++) sparkle(rand(.25,.75)*W, rand(.25,.75)*W, 6); }, 300); } else chime(660); renderLearn(); }
+function advance(){ const n=LESSONS[lesson].steps.length; stepIx++; if(stepIx>=n){ const first=!learned[lesson]; learned[lesson]=1; try { localStorage.setItem('rangoli-learned', JSON.stringify(learned)); } catch(e){} renderShelf(); if (first) toast('New star! ⭐'); confetti(); arpeggio(); setTimeout(()=>{ for(let i=0;i<6;i++) sparkle(rand(.25,.75)*W, rand(.25,.75)*W, 6); }, 300); } else chime(660); renderLearn(); }
 $('#nextStep').onclick=()=>{ const n=LESSONS[lesson].steps.length; if(stepIx>=n){ stepIx=0; resetLearnInk(); renderLearn(); } else advance(); };
 $('#prevStep').onclick=()=>{ if(stepIx>0){ stepIx--; renderLearn(); } };
 $('#clearLearn').onclick=()=>{ strokes=strokes.filter((s)=>s.owner && inked[s.owner]); redrawLearn(); };
 $('#lacBtn').onclick=(e)=>{ state.lac=!state.lac; e.currentTarget.setAttribute('aria-pressed',state.lac); };
+$('#speakBtn').onclick=(e)=>{ state.speak=!state.speak; e.currentTarget.setAttribute('aria-pressed',state.speak); try { localStorage.setItem('rangoli-speak', state.speak?'1':''); } catch(x){} spokenKey=''; if (state.speak) renderLearn(); else try { speechSynthesis.cancel(); } catch(x){} };
+try { state.speak = localStorage.getItem('rangoli-speak')==='1'; } catch(e){ state.speak=false; } $('#speakBtn').setAttribute('aria-pressed', !!state.speak);
+if (!('speechSynthesis' in window)) $('#speakBtn').hidden=true;
+// "Show me": a glowing pencil draws the current step once, slowly
+let demoRun=0;
+$('#showMeBtn').onclick=()=>{ const L=LESSONS[lesson]; if (stepIx>=L.steps.length) return; const run=++demoRun; const g=$('#learnGuide'); g.querySelectorAll('.demo,.pen').forEach((n)=>n.remove());
+  const paths=L.steps[stepIx].d.map((d)=>{ const p=document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d',d); p.setAttribute('class','demo'); g.appendChild(p); const T=p.getTotalLength(); p.style.strokeDasharray=T; p.style.strokeDashoffset=T; return {p,T}; });
+  const pen=document.createElementNS('http://www.w3.org/2000/svg','text'); pen.setAttribute('class','pen'); pen.textContent='✏️'; g.appendChild(pen);
+  const per=reduceMotion?1:1400; let k=0, t0=performance.now();
+  const step=(now)=>{ if (run!==demoRun || !pen.isConnected) return; const cur=paths[k]; const f=Math.min(1,(now-t0)/per); cur.p.style.strokeDashoffset=cur.T*(1-f); const q=cur.p.getPointAtLength(cur.T*f); pen.setAttribute('x',q.x-2); pen.setAttribute('y',q.y-2);
+    if (f>=1){ k++; t0=now; if (k>=paths.length){ setTimeout(()=>{ if (run===demoRun){ pen.remove(); paths.forEach(({p})=>p.animate([{opacity:1},{opacity:0}],{duration:600}).onfinish=()=>p.remove()); } }, 500); return; } }
+    requestAnimationFrame(step); };
+  requestAnimationFrame(step); };
+// tap the finished picture to paint a part with the pen colour
+function paintPart(i,c){ const o=recolor[lesson]||(recolor[lesson]={}); o[i]=c; const s=LESSONS[lesson].steps[i]; const g=$('#learnGuide');
+  if (s.f){ const gr=g.querySelector('#lg'+i); if (gr) gr.innerHTML=gradStops(c); g.querySelectorAll(`[data-s="${i}"]`).forEach((p)=>p.setAttribute('stroke',shade(c,-35))); }
+  else g.querySelectorAll(`[data-s="${i}"]`).forEach((p)=>p.setAttribute('stroke',c)); }
+$('#learnGuide').addEventListener('click',(e)=>{ if (stepIx<LESSONS[lesson].steps.length) return; const p=e.target.closest('[data-s]'); if(!p) return; const i=+p.dataset.s; paintPart(i,state.lcolor);
+  const r=stage.getBoundingClientRect(); sparkle((e.clientX-r.left)*W/r.width,(e.clientY-r.top)*W/r.height,10,[state.lcolor,'#fff8e7']); chime(523+i*60,.3); });
+$('#mixBtn').onclick=()=>{ LESSONS[lesson].steps.forEach((s,i)=>paintPart(i, COLORS[Math.floor(Math.random()*COLORS.length)][1])); chime(784,.3); };
 swatches($('#swLearn'),'lcolor');
 // strokes are kept in the 400 x 400 space of the lesson drawing
 const lctx=cx.learn; let curStroke=null; const toU=(p)=>({x:p.x*400/W,y:p.y*400/W});
@@ -773,400 +917,15 @@ cv.learn.addEventListener('pointermove',(e)=>{ if(!curStroke) return; const p=to
 $('#saveLearnBtn').onclick=()=>{ const done = stepIx>=LESSONS[lesson].steps.length; svgToCanvas($('#learnGuide'),1600,'#fffaf0', done ? null : cv.learn).then((c)=>savePicture(c,`my-${lesson}.png`)); };
 
 // =====================================================================================
-// CREATE: describe anything (or sketch it) and Claude paints it, live, stroke by stroke
-// =====================================================================================
-const csvg = $('#createSvg'); const SVGNS = 'http://www.w3.org/2000/svg';
-const SIZES = { landscape:[1200,900], portrait:[900,1200], square:[1200,1200], wide:[1600,900] };
-const STYLE_GUIDE = {
-  watercolour:'Indian watercolour painting: soft washes built from overlapping translucent shapes (fill-opacity 0.25 to 0.75), gentle gradients, soft edges, glowing light, a little white paper showing through.',
-  oil:'Rich oil painting in an impressionist manner: saturated colour, visible brushwork made of many small overlapping strokes (short paths and rotated ellipses), warm light and deep shadows, thick bright highlights.',
-  madhubani:'Madhubani (Mithila) folk painting from Bihar: bold black double outlines, flat bright fills of red, yellow, green, blue and pink, every empty space filled with fish, flowers, leaves, birds and fine line hatching, stylised figures in profile with large eyes, and a decorative patterned border around the whole picture. No gradients.',
-  warli:'Warli tribal painting from Maharashtra: an earthy terracotta or brown background with every figure in off-white: people made of two triangles joined at the tip with a circle head and stick limbs, huts, trees made of lines, spirals, a circle of dancers, animals, sun and moon. Flat, simple and rhythmic. No gradients.',
-  miniature:'Rajput and Mughal miniature painting: fine detail, flat decorative perspective, jewel tones (deep red, emerald, lapis blue, saffron), gold accents, patterned gardens, pavilions and arches, stylised figures in profile, and an ornamental gold border with floral motifs.',
-  gond:'Gond tribal art from Madhya Pradesh: vivid colours, animals, birds and trees whose bodies are filled with patterns of fine dots, dashes and lines, decorative and joyful, on a plain light background.',
-};
-const STYLE_FX = { watercolour:['pfx-water','pfx-paper'], oil:['pfx-oil','pfx-canvas'], madhubani:[null,'pfx-paper'], warli:[null,'pfx-paper'], miniature:[null,'pfx-paper'], gond:[null,'pfx-paper'] };
-const IDEAS = ['🧘 Buddha meditating under a bodhi tree at sunrise with lotus flowers','🛕 Varanasi ghats at sunrise with boats and diyas','🛶 Kerala backwaters with a houseboat and coconut palms','🏔️ Himalayan village with prayer flags in the snow','🏰 Rajasthan desert fort at dusk with camels',
-  '🪷 Lotus pond with ducks at golden hour','🦚 Peacock dancing in a monsoon garden','🪁 Children flying kites on rooftops at Sankranti','👵 Grandmother telling stories under a banyan tree',
-  '🐘 Decorated elephant at a temple festival','🪔 Diwali night with diyas by the river','🌸 Mandala over a calm lake at sunset','🦌 Deer in a forest at dawn'];
-const REMIX = [['🌙 Night','Make it a calm moonlit night with stars and glowing windows','at night'],['🌇 Sunset','Make it golden sunset light','at sunset'],['🪔 Festive','Add festive lights, diyas, marigold garlands and a few lanterns','with diyas'],['🌧️ Monsoon','Make it a rainy monsoon day with dark clouds, rain and reflections','in the monsoon rain'],['❄️ Snow','Make it a snowy winter scene','in the snow'],['🕊️ Birds','Add more flowers, birds and small details','with birds']];
-const FX_DEFS = `<filter id="pfx-water" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="10" xChannelSelector="R" yChannelSelector="G"/></filter>
-<filter id="pfx-oil" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/></filter>
-<filter id="pfx-paper" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="8"/><feColorMatrix type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.36  0 0 0 0 0.28  0 0 0 0.2 0"/></filter>
-<filter id="pfx-canvas" x="0" y="0" width="100%" height="100%"><feTurbulence type="turbulence" baseFrequency="0.6 0.08" numOctaves="2" seed="2"/><feColorMatrix type="matrix" values="0 0 0 0 0.3  0 0 0 0 0.25  0 0 0 0 0.2  0 0 0 0.22 0"/></filter>`;
-function setupCanvas(){ const [w,h]=SIZES[state.caspect]; csvg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-  csvg.innerHTML = `<defs>${FX_DEFS}</defs><rect width="${w}" height="${h}" fill="#fbf6ea"/><defs id="artDefs"></defs><g id="art"></g><rect id="ptex" width="${w}" height="${h}" style="mix-blend-mode:multiply" pointer-events="none"/>`; applyFx(); }
-function applyFx(){ const [a,t]=STYLE_FX[state.cstyle]; const art=csvg.querySelector('#art'), tex=csvg.querySelector('#ptex'); if (!art) return;
-  if (a) art.setAttribute('filter',`url(#${a})`); else art.removeAttribute('filter'); if (t) tex.setAttribute('filter',`url(#${t})`); else tex.removeAttribute('filter'); }
-// only plain drawing elements get through: no scripts, links, text or outside files
-const OK_TAGS = new Set(['path','rect','circle','ellipse','polygon','polyline','line','defs','linearGradient','radialGradient','stop','pattern','g']);
-const OK_ATTR = new Set(['d','x','y','width','height','cx','cy','r','rx','ry','fx','fy','points','x1','y1','x2','y2','fill','stroke','stroke-width','opacity','fill-opacity','stroke-opacity','stroke-linecap','stroke-linejoin','stroke-dasharray','fill-rule','transform','id','offset','stop-color','stop-opacity','gradientUnits','gradientTransform','patternUnits','patternTransform','patternContentUnits','spreadMethod','viewBox']);
-function parseClean(str){ const doc=new DOMParser().parseFromString(`<svg xmlns="${SVGNS}">${str}</svg>`,'image/svg+xml'); if (doc.querySelector('parsererror')) return [];
-  doc.documentElement.querySelectorAll('*').forEach((el)=>{ if (!OK_TAGS.has(el.localName)) { el.remove(); return; }
-    [...el.attributes].forEach((a)=>{ if (!OK_ATTR.has(a.name) || /url\(\s*(?!['"]?#)/i.test(a.value) || /javascript:|data:/i.test(a.value)) el.removeAttribute(a.name); }); });
-  return [...doc.documentElement.children].map((n)=>document.importNode(n,true)); }
-function currentContent(){ const d=csvg.querySelector('#artDefs'); const art=csvg.querySelector('#art'); if (!art) return '';
-  return `<defs>${d?d.innerHTML:''}</defs>\n` + [...art.children].filter((n)=>n.localName!=='image').map((n)=>n.outerHTML.replace(/ xmlns="[^"]*"/g,'')).join('\n'); }
-function rules(w,h){ return `OUTPUT FORMAT (strict):
-- Plain SVG markup only. No markdown, no code fences, no comments, no explanations before or after.
-- First line: one <defs>...</defs> holding linearGradient and radialGradient elements (ids g1, g2, ...) and, if useful, small <pattern> elements (ids p1, p2, ...). No filters and no <style>.
-- After that: ONE self-closing shape per line, painted back to front (sky and background first, then the far distance, the middle ground, the foreground, and details and highlights last).
-- Allowed shapes: <path/>, <rect/>, <circle/>, <ellipse/>, <polygon/>, <polyline/>, <line/>. Allowed attributes: geometry, fill, stroke, stroke-width, opacity, fill-opacity, stroke-opacity, stroke-linecap, stroke-linejoin, transform, fill-rule. Use gradients and patterns only as url(#id).
-- Never use <g>, <text>, <image>, <use>, <script>, <style>, <foreignObject> or any link.
-- The canvas is ${w} wide and ${h} high (viewBox 0 0 ${w} ${h}). Cover the whole canvas with the background first and keep everything inside it.
-- Use 180 to 320 shapes so the painting is rich and detailed. Keep each path reasonably short.`; }
-function paintPrompt(subject,w,h,withSketch){ return `You are a master painter who paints in SVG. Paint a beautiful, finished artwork that a family would proudly frame and hang in their home.
-
-SUBJECT: ${subject}
-STYLE: ${STYLE_GUIDE[state.cstyle]}
-${withSketch ? 'SKETCH: The attached image is the person\'s rough sketch. Keep its composition: put the main things where the sketch puts them, and turn it into a polished painting in the style above.\n' : ''}
-ART DIRECTION: a strong composition with one clear focal point; depth through atmospheric perspective (paler, cooler shapes far away); light from one direction with shadows and highlights; reflections wherever there is water; small lively details (stylised people, birds, boats, flowers, lamps) that reward a close look. People must be stylised and must not resemble any real person.
-
-${rules(w,h)}`; }
-function remixPrompt(cur,instr,w,h){ return `You are a master painter who paints in SVG. Below is a painting in SVG (a <defs> line, then one shape per line). Repaint it with this change: ${instr}
-Keep the same subject, composition and style (${STYLE_GUIDE[state.cstyle]}) unless the change asks otherwise, and keep the richness of detail.
-
-${rules(w,h)}
-
-CURRENT PAINTING:
-${cur.slice(0,150000)}`; }
-
-let sampleFn = null, sampleImages = false, ctl = null, lastSubject = '';
-const status = (t, busy) => { const s=$('#cStatus'); s.textContent=t; s.classList.toggle('busy',!!busy); };
-let aiShown=false;
-function aiOff(msg){ $('#paintBtn').hidden=true; aiNote = msg || 'The quick painter works everywhere. AI painting (for extra detail) works when this page is opened inside Claude.'; }
-let aiNote='';
-try { if (window.claude && window.claude.use) { window.claude.use('sample').then(async (s)=>{ sampleFn=s; if(!s){ aiOff(); return; }
-  try { const lim=await s.limits(); sampleImages=!!(lim && lim.images); } catch(e){} $('#sketchBtn').hidden=!sampleImages; }).catch(()=>aiOff()); } else aiOff(); } catch(e){ aiOff(); }
-function busy(on){ $('#paintBtn').disabled=on; $('#remixGo').disabled=on; $('#remixRow').querySelectorAll('button').forEach((b)=>{ b.disabled=on; }); $('#stopBtn').hidden=!on; }
-async function paint(remixInstr){
-  if (!sampleFn){ toast('AI painting needs this page opened in Claude.'); return; }
-  const subject = ($('#cPrompt').value.trim() || IDEAS[Math.floor(Math.random()*IDEAS.length)].replace(/^\S+\s/,'')); const [w,h]=SIZES[state.caspect];
-  const withSketch = !remixInstr && state.useSketch && sampleImages;
-  const instr = remixInstr || `Turn this quick draft into a rich, finished, frame-worthy painting of: "${subject}". Keep the general layout, paint every element far more beautifully and in more detail, and add anything from the description that is missing or not drawn well.`;
-  const prompt = withSketch ? paintPrompt(subject, w, h, true) : remixPrompt(currentContent(), instr, w, h);
-  const opts = { cache:false, modelTier:'default' };
-  if (withSketch) opts.images = [await new Promise((r)=>cv.sketch.toBlob(r,'image/png'))];
-  state.useSketch=false; $('#sketchBtn').setAttribute('aria-pressed','false'); cv.sketch.hidden=true; $('#clearSketchBtn').hidden=true; setWall(false);
-  let defsEl=null, art=null, started=false;
-  const begin=()=>{ if (started) return; started=true; setupCanvas(); defsEl=csvg.querySelector('#artDefs'); art=csvg.querySelector('#art'); };
-  let pos=0, defsDone=false, count=0;
-  const ingest=(t)=>{
-    if (!defsDone){ const s=t.indexOf('<defs'); const firstShape=t.search(/<(path|rect|circle|ellipse|polygon|polyline|line)\b/);
-      if (s>=0 && (firstShape<0 || s<firstShape)){ const e=t.indexOf('</defs>',s); if (e<0) return; begin(); parseClean(t.slice(s,e+7)).forEach((n)=>{ [...n.childNodes].forEach((c)=>defsEl.appendChild(c)); }); pos=e+7; defsDone=true; }
-      else if (firstShape>=0){ defsDone=true; pos=firstShape; } else return; }
-    const re=/<(path|rect|circle|ellipse|polygon|polyline|line)\b[^<>]*?(?:\/>|>\s*<\/\1>)/g; re.lastIndex=pos; let m, chunk='';
-    while ((m=re.exec(t))){ chunk+=m[0]; pos=re.lastIndex; count++; }
-    if (chunk){ begin(); parseClean(chunk).forEach((n)=>art.appendChild(n)); }
-  };
-  ctl = new AbortController(); opts.signal = ctl.signal; let first=true;
-  opts.onText = ({text}) => { if (first){ first=false; } ingest(text); status(`Painting… ${count} brushstrokes`, true); };
-  busy(true); status(remixInstr ? 'Repainting with your change… this takes about a minute.' : 'Imagining your painting… this takes about a minute.', true);
-  try { const r = await sampleFn(prompt, opts); ingest(r.text);
-    if (!count) { status('That did not turn into a painting. Try describing it a little differently.'); return; }
-    if (!remixInstr) lastSubject = subject; aiShown = true;
-    status(r.truncated ? `Done, with ${count} brushstrokes (a few final details were cut short).` : `Done! ${count} brushstrokes. Save it, or change something below.`); arpeggio(); sparkle(W/2,W/2,24);
-  } catch(e){ const code=e && e.code;
-    if (code==='cancelled') status(count ? `Stopped with ${count} brushstrokes.` : 'Stopped.');
-    else if (code==='not_granted' || code==='sampling_disabled' || code==='not_declared' || code==='capability_disabled' || code==='capability_removed'){ aiOff('AI painting is switched off for this page. Magic Paint still works.'); }
-    else if (code==='rate_limited') status('Too many paintings just now. Please try again in a minute.');
-    else if (code==='refused') status('Claude could not paint that one. Try a different idea.');
-    else status(count ? `Interrupted after ${count} brushstrokes. Press Paint it to try again.` : 'Something went wrong. Press Paint it to try again.');
-  } finally { busy(false); }
-}
-$('#paintBtn').onclick=()=>paint(null);
-// quick painter: paints at once on every change
-let variant=0, typeT=null;
-function quickPaint(){ setupCanvas(); aiShown=false; const r=instantPaint($('#cPrompt').value, variant); const i=r.svg.indexOf('</defs>');
-  parseClean(r.svg.slice(0,i+7)).forEach((n)=>{ [...n.childNodes].forEach((c)=>csvg.querySelector('#artDefs').appendChild(c)); });
-  parseClean(r.svg.slice(i+7)).forEach((n)=>csvg.querySelector('#art').appendChild(n));
-  lastSubject=$('#cPrompt').value.trim(); if (state.wall) setWall(true);
-  const U=r.understood; const what = r.used.length ? r.used.join(' · ') : 'a calm landscape';
-  let msg = `Painted: ${what}, ${U.time}${U.water?', water':''}${U.mountains?', mountains':''}${U.desert?', desert':''}.`;
-  if (U.unknown.length) msg += ` I can't quick-paint “${U.unknown.slice(0,3).join(', ')}” yet.`;
-  msg += sampleFn ? ' For more detail, or anything else you imagine, press ✨ Paint with AI.' : (aiNote ? ' '+aiNote : '');
-  status(msg); }
-$('#cPrompt').addEventListener('input',()=>{ clearTimeout(typeT); typeT=setTimeout(()=>{ variant=0; quickPaint(); },450); });
-$('#variantBtn').onclick=()=>{ variant++; quickPaint(); sparkle(W/2,W/2,14); chime(700,.3); };
-$('#stopBtn').onclick=()=>{ if (ctl) ctl.abort(); };
-$('#ideaRow').innerHTML = IDEAS.map((t)=>`<button class="chip" data-t="${t.replace(/^\S+\s/,'')}">${t}</button>`).join('');
-$('#ideaRow').onclick=(e)=>{ const b=e.target.closest('.chip'); if(!b) return; $('#cPrompt').value=b.dataset.t; variant=0; quickPaint(); sparkle(W/2,W/2,16); chime(660,.3); };
-chips($('#cstyleRow'), [['watercolour','💧 Watercolour'],['oil','🖼️ Oil painting'],['madhubani','🐟 Madhubani'],['warli','🔺 Warli'],['miniature','🏯 Miniature'],['gond','🐘 Gond']], 'cstyle', ()=>{ if (aiShown) { applyFx(); toast('Style changed. Press ✨ Paint with AI to repaint in this style, or 🎲 for a quick version.'); } else quickPaint(); });
-chips($('#aspectRow'), [['landscape','Landscape 4:3'],['portrait','Portrait 3:4'],['square','Square'],['wide','Wide 16:9']], 'caspect', ()=>{ quickPaint(); });
-$('#remixRow').innerHTML = REMIX.map(([l,t,q])=>`<button class="chip" data-t="${t}" data-q="${q}">${l}</button>`).join('');
-// after an AI painting, changes are repainted by AI; otherwise the words are added and the quick painter repaints at once
-function addWords(q){ const box=$('#cPrompt'); const cur=box.value.replace(/\b(at night|at sunset|at sunrise|in the monsoon rain|in the snow)\b/gi,'').replace(/\s+/g,' ').trim(); box.value = `${cur} ${q}`.trim(); variant=0; quickPaint(); }
-$('#remixRow').onclick=(e)=>{ const b=e.target.closest('.chip'); if(!b || b.disabled) return; if (aiShown && sampleFn) paint(b.dataset.t); else addWords(b.dataset.q); };
-$('#remixGo').onclick=()=>{ const t=$('#remixText').value.trim(); if (!t){ $('#remixText').focus(); return; } if (aiShown && sampleFn) paint(t); else addWords(t); $('#remixText').value=''; };
-// sketch first
-const sk=cx.sketch; let skLast=null;
-function blankSketch(){ sk.fillStyle='#ffffff'; sk.fillRect(0,0,W,W); sk.fillStyle='#9a8fbf'; sk.font=`600 ${Math.round(W/34)}px system-ui`; sk.textAlign='center'; sk.fillText('Sketch roughly what you want, then press Paint it',W/2,W*.06); }
-$('#sketchBtn').onclick=(e)=>{ state.useSketch=!state.useSketch; e.currentTarget.setAttribute('aria-pressed',state.useSketch); cv.sketch.hidden=!state.useSketch; $('#clearSketchBtn').hidden=!state.useSketch; if (state.useSketch){ setWall(false); if (!cv.sketch.dataset.used) { blankSketch(); cv.sketch.dataset.used='1'; } } };
-$('#clearSketchBtn').onclick=blankSketch;
-cv.sketch.addEventListener('pointerdown',(e)=>{ cv.sketch.setPointerCapture(e.pointerId); skLast=pt(e); });
-cv.sketch.addEventListener('pointermove',(e)=>{ if(!skLast) return; const p=pt(e); sk.strokeStyle='#1b1b2f'; sk.lineWidth=W/150; sk.lineCap='round'; sk.beginPath(); sk.moveTo(skLast.x,skLast.y); sk.lineTo(p.x,p.y); sk.stroke(); skLast=p; });
-['pointerup','pointercancel','pointerleave'].forEach((t)=>cv.sketch.addEventListener(t,()=>{ skLast=null; }));
-// render for printing, and the wall preview
-function paintingToCanvas(longSide){ const vb=csvg.getAttribute('viewBox').split(/\s+/).map(Number); const w=vb[2], h=vb[3], k=longSide/Math.max(w,h);
-  return new Promise((res)=>{ const clone=csvg.cloneNode(true); clone.removeAttribute('hidden'); clone.setAttribute('xmlns',SVGNS); clone.setAttribute('width',Math.round(w*k)); clone.setAttribute('height',Math.round(h*k));
-    const img=new Image(); img.onload=()=>{ const c=document.createElement('canvas'); c.width=Math.round(w*k); c.height=Math.round(h*k); const x=c.getContext('2d'); x.fillStyle='#fbf6ea'; x.fillRect(0,0,c.width,c.height); x.drawImage(img,0,0,c.width,c.height); res(c); };
-    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(clone)); }); }
-async function setWall(on){ state.wall=on; $('#wallBtn').setAttribute('aria-pressed',on); const wv=$('#wallView'); wv.hidden=!on || state.mode!=='create';
-  if (!on) return; const c=await paintingToCanvas(1000); const vb=csvg.getAttribute('viewBox').split(/\s+/).map(Number);
-  wv.innerHTML=`<div class="wall"><div class="frame" style="aspect-ratio:${vb[2]}/${vb[3]};width:${vb[2]>=vb[3]?62:42}%"><img alt="Your painting framed on a wall" src="${c.toDataURL('image/jpeg',.9)}"></div><div class="lamp"></div><div class="sofa"></div></div>`; }
-$('#wallBtn').onclick=()=>setWall(!state.wall);
-$('#savePngBtn').onclick=async ()=>{ status('Preparing a 4K picture for printing…', true); const c=await paintingToCanvas(3600); status('Ready to save.'); savePicture(c, `painting-${(lastSubject||'my-art').toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,40)}.png`); };
-$('#saveSvgBtn').onclick=async ()=>{ const clone=csvg.cloneNode(true); clone.removeAttribute('hidden'); clone.setAttribute('xmlns',SVGNS); const vb=csvg.getAttribute('viewBox').split(/\s+/).map(Number); clone.setAttribute('width',vb[2]); clone.setAttribute('height',vb[3]);
-  const data=new XMLSerializer().serializeToString(clone);
-  if (downloads){ try { await downloads.save({ filename:'painting.svg', data }); toast('Saved! ✨'); return; } catch(e){ if (e && e.code==='declined') return; } }
-  toast('SVG saving needs this page opened in Claude. Here is a picture instead.'); savePicture(await paintingToCanvas(2400),'painting.png'); };
-// the page opens on an example painting (made with the Magic Paint brushes)
-function showExample(){ setupCanvas(); const [w,h]=SIZES[state.caspect]; const o=document.createElement('canvas'); o.width=cv.paint.width; o.height=cv.paint.height; const x=o.getContext('2d'); x.drawImage(cv.sky,0,0); x.drawImage(cv.paint,0,0);
-  const im=document.createElementNS(SVGNS,'image'); im.setAttribute('href',o.toDataURL('image/jpeg',.9)); im.setAttribute('width',w); im.setAttribute('height',h); im.setAttribute('preserveAspectRatio','xMidYMid slice'); csvg.querySelector('#art').appendChild(im); }
-
-// =====================================================================================
-// INSTANT PAINTER: reads what you typed and paints it at once, in the chosen art style
-// =====================================================================================
-const KEYS = {
-  buddha:/buddh|meditat|monk|zen|bodhisatt|peace/, tree:/tree|bodhi|banyan|peepal|forest|jungle|woods/, temple:/temple|mandir|shiva|shrine|pagoda|stupa|monaster/,
-  ghats:/ghat|varanasi|banaras|benaras|kashi|ganga|ganges|aarti/, boat:/boat|houseboat|fisherm|sail|shikara|kerala|backwater/, lotus:/lotus|kamal|lily|pond/,
-  peacock:/peacock|peahen|mor\b/, elephant:/elephant|haathi|hathi|gaja/, fort:/fort|palace|castle|rajasthan|jaipur|jodhpur|mahal/, camel:/camel|desert|thar|dune/,
-  kite:/kite|patang|sankranti|uttarayan|rooftop/, diya:/diya|diwali|deepavali|lamp|candle|festival|aarti/, bird:/bird|parrot|pigeon|crane|swan|duck|flock/,
-  people:/girl|boy|woman|women|man\b|men\b|mother|father|child|children|kid|grand|people|family|dancer|farmer|lady|couple/, palm:/palm|coconut|kerala|beach|goa|island|tropical/,
-  village:/village|hut|farm|field|rural|gaon/, mandala:/mandala|rangoli|kolam|pattern/, deer:/deer|fawn/, cow:/\bcow|cattle/, fish:/fish|matsya/,
-};
-const TIMES = [['night',/night|moon|star|diwali|deepavali|midnight|evening sky/],['sunset',/sunset|dusk|evening|golden hour|twilight/],['dawn',/sunrise|dawn|morning|early/],['monsoon',/rain|monsoon|storm|cloudy/],['snow',/snow|winter|himalaya|ice|frost/],['day',/day|noon|bright|sunny|summer/]];
-const LABEL = { buddha:'Buddha', tree:'tree', temple:'temple', ghats:'ghats', boat:'boats', lotus:'lotus', peacock:'peacock', elephant:'elephant', fort:'fort', camel:'camels', kite:'kites', diya:'diyas', bird:'birds', people:'people', palm:'palms', village:'village', mandala:'mandala', deer:'deer', cow:'cow', fish:'fish' };
-function hashStr(s){ let h=2166136261; for (const ch of s) { h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; }
-function understand(text){
-  const t=` ${text.toLowerCase()} `; const subj=Object.keys(KEYS).filter((k)=>KEYS[k].test(t));
-  let time=(TIMES.find(([,re])=>re.test(t))||[])[0];
-  const water=/river|ghat|ganga|ganges|lake|pond|backwater|sea|ocean|beach|boat|houseboat|lotus|kerala|waterfall|stream|shikara|island/.test(t);
-  const mountains=/mountain|himalaya|hill|valley|snow|ladakh|kashmir|everest|peak/.test(t);
-  const desert=/desert|thar|dune|camel|sand/.test(t);
-  if (!time) time = subj.includes('diya') ? 'night' : subj.includes('buddha') ? 'dawn' : subj.includes('fort')||desert ? 'sunset' : subj.includes('kite') ? 'day' : subj.includes('ghats') ? 'dawn' : mountains ? 'day' : 'sunset';
-  const words=t.replace(/[^a-z ]/g,' ').split(/\s+/).filter((w)=>w.length>3 && !/with|and|the|under|over|near|from|into|painting|paint|picture|scene|beautiful|happy|big|small|little|lots|many|some|very|their|they|this|that|evening|morning|night|sunrise|sunset|india|indian|style/.test(w));
-  const known=words.filter((w)=>Object.values(KEYS).some((re)=>re.test(` ${w} `)) || /river|lake|sea|ocean|beach|mountain|hill|valley|snow|desert|sand|rain|moon|star|sky|cloud|water|flower|grass|light/.test(w));
-  const filler=/ing$|ed$|ly$|^(monsoon|garden|festival|calm|golden|hour|light|bright|colourful|colorful|lots|full|over|under|around|holy|sacred|together|while|scene|view)$/;
-  return { subj, time, water, mountains, desert, unknown: words.filter((w)=>!known.includes(w) && !filler.test(w)) };
-}
-// colours: one palette per time of day for painterly styles, one per folk style
-const TIMEPAL = {
-  dawn:{ sky:['#9fc9ef','#ffd8c2','#ffe9b8'], sun:'#fff3c4', glow:'#ffcf8a', far:'#b8a9d9', mid:'#8c7fbf', land:['#9ccf7a','#5f9a4c'], water:['#bfe3f2','#6aa9c9'], light:'#fff6dc' },
-  sunset:{ sky:['#2b1055','#c8476b','#f6a04d'], sun:'#ffe08a', glow:'#f7a541', far:'#8d4a8f', mid:'#5d2c6f', land:['#5b3a5e','#2e1f3a'], water:['#f2a65a','#4a2463'], light:'#ffd29a' },
-  day:{ sky:['#4fa3e0','#9fd3f5','#e3f4ff'], sun:'#fffbe0', glow:'#fff0a8', far:'#9cb7d4', mid:'#6e93b8', land:['#8fcf6a','#3f8f3c'], water:['#7cc6e8','#2f7fae'], light:'#ffffff' },
-  night:{ sky:['#070b26','#1c1250','#3a2470'], sun:'#fffbe8', glow:'#9fb4ff', far:'#2c2560', mid:'#1d1846', land:['#1e2b3f','#0d1422'], water:['#2a3570','#0c1030'], light:'#ffe08a' },
-  monsoon:{ sky:['#4a5568','#7d8a9b','#b9c3cf'], sun:'#e6ecf2', glow:'#d4dde6', far:'#6b7a8f', mid:'#4d5d72', land:['#4f8a5b','#2c5a3a'], water:['#7d93a8','#3c5269'], light:'#eef3f7' },
-  snow:{ sky:['#8fbbe8','#cfe5f7','#f4f9ff'], sun:'#fffdf2', glow:'#fff4c9', far:'#b9c9de', mid:'#8aa0bd', land:['#f4f8fc','#d5e1ee'], water:['#a7cbe3','#5d8db3'], light:'#ffffff' },
-};
-const FOLK = {
-  madhubani:{ bg:'#f6e7c1', sky:'#f6e7c1', c:['#d7263d','#f7c531','#3ba55c','#1e50a2','#ec4e9c','#f28c1e','#5d3a1a'], line:'#1b1b1b', sw:3, border:'madhubani' },
-  warli:{ bg:'#9c4a2a', sky:'#9c4a2a', c:['#f3e9d2'], line:'#f3e9d2', sw:2.6, warli:true },
-  gond:{ bg:'#f7f0e1', sky:'#f7f0e1', c:['#e63946','#f4a261','#2a9d8f','#264653','#e9c46a','#8338ec','#06a77d'], line:'#1b1b1b', sw:1.8, dots:true },
-  miniature:{ bg:'#f3e2b3', sky:'#7fb3d5', c:['#9b1d20','#0b6e4f','#1f4e9a','#e8a33d','#5e2750','#c97b2b','#2e2a26'], line:'#3b2a1a', sw:1.2, border:'miniature' },
-};
-function instantPaint(text, variant){
-  const [w,h]=SIZES[state.caspect]; const style=state.cstyle; const folk=FOLK[style]; const U=understand(text||''); const R=rng(hashStr((text||'')+style)+variant*7919+1);
-  const pal=TIMEPAL[U.time]; const defs=[]; const out=[]; let gid=0;
-  const rnd=(a,b)=>a+R()*(b-a); const pick=(a)=>a[Math.floor(R()*a.length)];
-  const lin=(stops,vert=true)=>{ if (folk) return stops[Math.floor(stops.length/2)]; const id=`g${++gid}`; defs.push(`<linearGradient id="${id}" x1="0" y1="0" x2="${vert?0:1}" y2="${vert?1:0}">${stops.map((c,i)=>`<stop offset="${(i/(stops.length-1)).toFixed(2)}" stop-color="${c}"/>`).join('')}</linearGradient>`); return `url(#${id})`; };
-  const rad=(c1,c2,o1=1,o2=0)=>{ if (folk) return c1; const id=`g${++gid}`; defs.push(`<radialGradient id="${id}"><stop offset="0" stop-color="${c1}" stop-opacity="${o1}"/><stop offset="1" stop-color="${c2}" stop-opacity="${o2}"/></radialGradient>`); return `url(#${id})`; };
-  let fi=0; const fc=(painterly)=> folk ? folk.c[(fi++)%folk.c.length] : painterly;   // folk styles: bright flat colours in turn
-  const attrs=(o)=>Object.entries(o).filter(([,v])=>v!=null).map(([k,v])=>`${k}="${typeof v==='number'?+v.toFixed(1):v}"`).join(' ');
-  // add(): one shape; role 'bg' = never outlined, 'solid' = stays filled in Warli, 'body' = gets Gond dots
-  const add=(tag,o,role='')=>{ const a={...o};
-    if (folk && role!=='bg'){ if (folk.warli){ if (role==='solid'){ a.fill=folk.c[0]; a.stroke=null; } else { a.fill='none'; a.stroke=folk.line; a['stroke-width']=a['stroke-width']||folk.sw; } a.opacity=null; a['fill-opacity']=null; }
-      else if (a.stroke==null && a.fill!=='none'){ a.stroke=folk.line; a['stroke-width']=folk.sw; } }
-    out.push(`<${tag} ${attrs(a)}/>`);
-    if (folk && folk.dots && role==='body') out.push(`<${tag} ${attrs({...a,fill:'url(#gdots)',stroke:null,'stroke-width':null})}/>`); };
-  const line=(d,color,sw,op=1,role='')=>add('path',{d,fill:'none',stroke:color,'stroke-width':sw,'stroke-linecap':'round',opacity:op},role);
-  if (folk && folk.dots) defs.push('<pattern id="gdots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.6" fill="#ffffff" opacity=".85"/><circle cx="10" cy="10" r="1.6" fill="#1b1b1b" opacity=".55"/></pattern>');
-  const hy = h*(U.subj.includes('kite') ? .74 : U.water||U.desert ? .6 : .64);
-  // ---------- sky ----------
-  add('rect',{x:0,y:0,width:w,height:h,fill: folk ? folk.bg : lin(pal.sky)},'bg');
-  if (folk && style==='miniature') add('rect',{x:0,y:0,width:w,height:hy,fill:folk.sky},'bg');
-  if (U.time==='night' && !folk) for (let i=0;i<90;i++) add('circle',{cx:rnd(0,w),cy:rnd(0,hy*.85),r:rnd(.6,2.2),fill:'#fffbe8',opacity:rnd(.4,1)},'bg');
-  if (U.time==='night' && folk) for (let i=0;i<24;i++) add('circle',{cx:rnd(0,w),cy:rnd(0,hy*.8),r:rnd(2,4),fill:folk.c[0]},'solid');
-  // ---------- sun / moon ----------
-  const sp = { dawn:[.74,hy-h*.08,.07], sunset:[.5,hy-h*.02,.085], day:[.82,h*.16,.055], night:[.8,h*.15,.05], monsoon:[.7,h*.18,.05], snow:[.78,h*.15,.05] }[U.time];
-  const sx=w*sp[0], sy=sp[1], sr=h*sp[2];
-  if (U.time!=='monsoon'){
-    if (!folk) add('circle',{cx:sx,cy:sy,r:sr*4,fill:rad(pal.glow,pal.glow,.55,0)},'bg');
-    add('circle',{cx:sx,cy:sy,r:sr,fill: folk ? (folk.warli?folk.c[0]:'#f28c1e') : pal.sun},'solid');
-    if (folk && U.time!=='night') for (let i=0;i<12;i++){ const a=i*Math.PI/6; add('path',{d:`M${sx+Math.cos(a-.12)*sr*1.15} ${sy+Math.sin(a-.12)*sr*1.15}L${sx+Math.cos(a)*sr*1.6} ${sy+Math.sin(a)*sr*1.6}L${sx+Math.cos(a+.12)*sr*1.15} ${sy+Math.sin(a+.12)*sr*1.15}Z`,fill: folk.warli?folk.c[0]:'#f7c531'},'solid'); }
-    if (U.time==='night' && !folk) add('circle',{cx:sx+sr*.35,cy:sy-sr*.2,r:sr*.9,fill:pal.sky[0],opacity:.0},'bg');
-  } else if (!folk) for (let i=0;i<6;i++){ const cx0=rnd(0,w), cy0=rnd(h*.05,h*.3); for (let j=0;j<5;j++) add('ellipse',{cx:cx0+rnd(-90,90),cy:cy0+rnd(-20,20),rx:rnd(60,130),ry:rnd(25,45),fill:pick(['#6b7686','#8794a6','#5a6577']),opacity:.75},'bg'); }
-  // ---------- far land ----------
-  const ridge=(base,peakH,n,fill,snow,role)=>{ let d=`M0 ${base}`; const pk=[]; for (let i=0;i<=n;i++){ const x=i*w/n, y=base-peakH*(.45+R()*.55)*(i%2?1:.55); d+=` L${x.toFixed(1)} ${y.toFixed(1)}`; pk.push([x,y]); } add('path',{d:d+` L${w} ${base} Z`,fill},role||'body');
-    if (snow) pk.forEach(([x,y],i)=>{ if (i%2) add('path',{d:`M${x-w/n*.22} ${y+peakH*.18}L${x} ${y}L${x+w/n*.22} ${y+peakH*.18}L${x+w/n*.08} ${y+peakH*.12}L${x} ${y+peakH*.2}L${x-w/n*.1} ${y+peakH*.11}Z`,fill:'#fbfdff'},'solid'); }); };
-  if (U.mountains || (!U.water && !U.desert && !U.subj.includes('kite'))) { ridge(hy, h*(U.mountains?.34:.16), U.mountains?7:5, fc(lin([pal.far,pal.mid])), U.mountains && (U.time==='snow'||U.time==='day'||U.time==='dawn')); ridge(hy, h*(U.mountains?.2:.09), U.mountains?9:6, fc(lin([pal.mid,pal.land[1]]))); }
-  if (U.desert) for (let i=0;i<3;i++){ const y=hy+i*h*.06; add('path',{d:`M0 ${y} Q${w*.25} ${y-h*.07} ${w*.5} ${y} T${w} ${y} L${w} ${h} L0 ${h}Z`,fill:fc(lin(['#f2c98a','#c98a4b']))},'body'); }
-  // ---------- water or land ----------
-  if (U.water){ add('rect',{x:0,y:hy,width:w,height:h-hy,fill:fc(lin(pal.water))},'body');
-    if (!folk){ for (let i=0;i<70;i++){ const y=rnd(hy+4,h); const x=rnd(0,w); line(`M${x} ${y} h${rnd(20,90)}`,pal.light,rnd(1,2.5),rnd(.15,.4)); }
-      if (U.time!=='monsoon') for (let i=0;i<10;i++) add('ellipse',{cx:sx+rnd(-12,12),cy:hy+(i+1)*(h-hy)/12,rx:sr*rnd(.4,1),ry:3,fill:pal.sun,opacity:.5},'bg'); }
-    else for (let i=0;i<10;i++){ const y=hy+(i+1)*(h-hy)/11; line(`M${rnd(0,w*.4)} ${y} q30 -10 60 0 t60 0 t60 0`,folk.warli?folk.c[0]:'#1e50a2',2,1,'solid'); } }
-  else if (!U.desert) add('path',{d:`M0 ${hy} Q${w*.3} ${hy-h*.04} ${w*.6} ${hy+h*.01} T${w} ${hy} L${w} ${h} L0 ${h}Z`,fill:fc(lin(pal.land))},'body');
-  // ---------- elements ----------
-  const skin='#c68a5a', wood='#5b3a29', stone=['#e8c39a','#c9935f'];
-  function temple(cx,base,s){ add('rect',{x:cx-s*.24,y:base-s*.2,width:s*.48,height:s*.2,fill:fc(lin(stone))},'body');
-    add('path',{d:`M${cx-s*.2} ${base-s*.2} C${cx-s*.2} ${base-s*.5} ${cx-s*.08} ${base-s*.72} ${cx} ${base-s*.8} C${cx+s*.08} ${base-s*.72} ${cx+s*.2} ${base-s*.5} ${cx+s*.2} ${base-s*.2}Z`,fill:fc(lin([stone[0],'#b0703f']))},'body');
-    for (let k=1;k<4;k++){ const y=base-s*.2-k*s*.14; line(`M${cx-s*(.2-k*.04)} ${y} Q${cx} ${y-s*.03} ${cx+s*(.2-k*.04)} ${y}`, folk?folk.line:'#8a5a33', 2); }
-    add('ellipse',{cx,cy:base-s*.81,rx:s*.06,ry:s*.025,fill:fc('#d4a72c')}); add('path',{d:`M${cx} ${base-s*.84} L${cx} ${base-s*.98}`,stroke:folk?folk.line:wood,'stroke-width':2.5,fill:'none'});
-    add('path',{d:`M${cx} ${base-s*.98} L${cx+s*.12} ${base-s*.94} L${cx} ${base-s*.9}Z`,fill:fc('#f28c1e')},'solid');
-    add('path',{d:`M${cx-s*.06} ${base} V${base-s*.1} Q${cx} ${base-s*.17} ${cx+s*.06} ${base-s*.1} V${base}Z`,fill:fc('#3b2418')},'solid'); }
-  function ghats(){ const top=hy-h*.2; for (let x=-20;x<w;){ const bw=rnd(w*.05,w*.11), bh=rnd(h*.08,h*.17); add('rect',{x,y:hy-h*.05-bh,width:bw,height:bh,fill:fc(lin([pick(['#f0c890','#e7a86b','#d98b5f','#f3d6a8']),'#b9784a']))},'body');
-      for (let r=0;r<3;r++) add('rect',{x:x+bw*.2+r*bw*.22,y:hy-h*.05-bh+bh*.25,width:bw*.12,height:bh*.18,fill:fc('#6b3a22'),opacity:folk?null:.6},'solid');
-      if (R()<.35) temple(x+bw/2, hy-h*.05-bh, h*.16); x+=bw-2; }
-    for (let k=0;k<5;k++) add('rect',{x:0,y:hy-h*.05+k*h*.01,width:w,height:h*.01,fill:fc(k%2?'#c98f63':'#e9c49a')},'body');
-    for (let i=0;i<6;i++){ const ux=rnd(w*.05,w*.95), uy=hy-h*.035; add('path',{d:`M${ux-18} ${uy} Q${ux} ${uy-24} ${ux+18} ${uy}Z`,fill:fc(pick(['#d7263d','#f7c531','#0e9aa7']))}); line(`M${ux} ${uy} V${uy+16}`,folk?folk.line:wood,2); } }
-  function boat(x,y,s,canopy){ add('path',{d:`M${x-s} ${y} Q${x} ${y+s*.42} ${x+s} ${y} Q${x} ${y+s*.16} ${x-s} ${y}Z`,fill:fc(lin(['#7a4a2a','#3d2416']))},'body');
-    if (!folk) add('path',{d:`M${x-s} ${y+s*.3} Q${x} ${y-s*.05} ${x+s} ${y+s*.3}`,fill:'none',stroke:'#3d2416','stroke-width':3,opacity:.25});
-    if (canopy) add('path',{d:`M${x-s*.55} ${y+s*.05} V${y-s*.32} Q${x} ${y-s*.55} ${x+s*.55} ${y-s*.32} V${y+s*.05}Z`,fill:fc(lin(['#c9a26b','#8a6a3d']))},'body');
-    else { add('circle',{cx:x+s*.35,cy:y-s*.38,r:s*.08,fill:fc(skin)},'solid'); add('path',{d:`M${x+s*.28} ${y+s*.02} L${x+s*.31} ${y-s*.3} L${x+s*.42} ${y-s*.3} L${x+s*.44} ${y+s*.02}Z`,fill:fc(pick(['#f7f3e8','#f28c1e','#d7263d']))}); line(`M${x+s*.4} ${y-s*.2} L${x+s*.95} ${y+s*.35}`,folk?folk.line:wood,3); } }
-  function lotus(x,y,s,pad=true){ if (pad){ add('ellipse',{cx:x-s*.9,cy:y+s*.18,rx:s*.7,ry:s*.18,fill:fc(lin(['#5fae5a','#2f6f3a']))},'body'); add('ellipse',{cx:x+s*.85,cy:y+s*.2,rx:s*.6,ry:s*.15,fill:fc(lin(['#5fae5a','#2f6f3a']))},'body'); }
-    const P=(dx,tilt,len,wid,c)=>{ const tx=x+dx+Math.sin(tilt)*len, ty=y-Math.cos(tilt)*len; add('path',{d:`M${x+dx} ${y} C${x+dx-wid} ${y-len*.45} ${tx-wid*.4} ${ty+len*.2} ${tx} ${ty} C${tx+wid*.4} ${ty+len*.2} ${x+dx+wid} ${y-len*.45} ${x+dx} ${y}Z`,fill:fc(lin([c,'#f8d7e6']))},'body'); };
-    P(-s*.1,-1.1,s*.6,s*.25,'#d94f8a'); P(s*.1,1.1,s*.6,s*.25,'#d94f8a'); P(0,-.55,s*.8,s*.28,'#ec6fa6'); P(0,.55,s*.8,s*.28,'#ec6fa6'); P(0,0,s*.95,s*.3,'#f49ac1'); }
-  function tree(cx,base,s,kind){ add('path',{d:`M${cx-s*.07} ${base} C${cx-s*.05} ${base-s*.3} ${cx-s*.04} ${base-s*.45} ${cx-s*.12} ${base-s*.6} L${cx+s*.12} ${base-s*.6} C${cx+s*.05} ${base-s*.45} ${cx+s*.05} ${base-s*.3} ${cx+s*.08} ${base}Z`,fill:fc(lin(['#6b4423','#3e2716']))},'body');
-    line(`M${cx-s*.03} ${base-s*.5} Q${cx-s*.25} ${base-s*.62} ${cx-s*.4} ${base-s*.6}`,folk?folk.line:'#4a2f1b',s*.03); line(`M${cx+s*.03} ${base-s*.5} Q${cx+s*.25} ${base-s*.64} ${cx+s*.42} ${base-s*.62}`,folk?folk.line:'#4a2f1b',s*.03);
-    const greens = U.time==='night' ? ['#1f4a3a','#163829','#2a5b47'] : U.time==='sunset' ? ['#4f6b3a','#3a5230','#6b7f3e'] : ['#4f9a4a','#3a7f3c','#6bb35a','#2f6b33'];
-    for (let i=0;i<16;i++){ const a=rnd(Math.PI,2*Math.PI), rr=rnd(0,s*.42); add('circle',{cx:cx+Math.cos(a)*rr*1.3,cy:base-s*.72+Math.sin(a)*rr*.65,r:rnd(s*.12,s*.2),fill:fc(rad(pick(greens),pick(greens),1,1)),opacity:folk?null:.92},'body'); }
-    if (kind==='bodhi' || folk) for (let i=0;i<26;i++){ const lx=cx+rnd(-s*.55,s*.55), ly=base-s*.72+rnd(-s*.35,s*.2), ls=s*.035; add('path',{d:`M${lx} ${ly+ls} C${lx-ls*1.4} ${ly} ${lx-ls} ${ly-ls*1.2} ${lx} ${ly-ls*.5} C${lx+ls} ${ly-ls*1.2} ${lx+ls*1.4} ${ly} ${lx} ${ly+ls}Z`,fill:fc(pick(['#7cc46a','#a3d977','#5fae5a']))}); }
-    if (kind==='banyan') for (let i=0;i<10;i++){ const rx=cx+rnd(-s*.5,s*.5); line(`M${rx} ${base-s*.55} Q${rx+rnd(-8,8)} ${base-s*.3} ${rx+rnd(-6,6)} ${base}`,folk?folk.line:'#5a3b22',2,.8); } }
-  function buddha(cx,base,s){ const hc=base-s*.78;
-    add('circle',{cx,cy:hc,r:s*.34,fill: folk ? fc('#f7c531') : rad('#fff3b0','#f7c531',.95,.0)}, folk&&folk.warli ? '' : 'solid'); if (!folk) add('circle',{cx,cy:hc,r:s*.24,fill:'none',stroke:'#e8b84a','stroke-width':3,opacity:.7});
-    for (let i=-3;i<=3;i++){ const px=cx+i*s*.15; add('path',{d:`M${px-s*.09} ${base+s*.02} Q${px} ${base-s*.12} ${px+s*.09} ${base+s*.02} Q${px} ${base+s*.08} ${px-s*.09} ${base+s*.02}Z`,fill:fc(lin(['#f49ac1','#d94f8a']))},'body'); }
-    const robe = U.time==='night' ? ['#d98a3a','#9c4a1a'] : ['#f28c1e','#b8461a'];
-    add('ellipse',{cx,cy:base-s*.07,rx:s*.5,ry:s*.11,fill:fc(lin(robe))},'body');
-    add('path',{d:`M${cx-s*.44} ${base-s*.06} C${cx-s*.46} ${base-s*.36} ${cx-s*.3} ${base-s*.6} ${cx} ${base-s*.63} C${cx+s*.3} ${base-s*.6} ${cx+s*.46} ${base-s*.36} ${cx+s*.44} ${base-s*.06}Z`,fill:fc(lin(robe))},'body');
-    line(`M${cx-s*.22} ${base-s*.58} Q${cx+s*.05} ${base-s*.35} ${cx+s*.3} ${base-s*.12}`, folk?folk.line:'#8a3412', s*.018, .8);
-    line(`M${cx+s*.12} ${base-s*.6} Q${cx+s*.3} ${base-s*.45} ${cx+s*.38} ${base-s*.2}`, folk?folk.line:'#8a3412', s*.012, .6);
-    add('ellipse',{cx,cy:base-s*.17,rx:s*.13,ry:s*.05,fill:fc('#d9a37a')},'solid');
-    add('rect',{x:cx-s*.045,y:hc+s*.1,width:s*.09,height:s*.08,fill:fc('#d9a37a')},'solid');
-    add('ellipse',{cx:cx-s*.125,cy:hc+s*.02,rx:s*.028,ry:s*.075,fill:fc('#d9a37a')},'solid'); add('ellipse',{cx:cx+s*.125,cy:hc+s*.02,rx:s*.028,ry:s*.075,fill:fc('#d9a37a')},'solid');
-    add('ellipse',{cx,cy:hc,rx:s*.115,ry:s*.13,fill: folk&&!folk.warli ? '#e0aa80' : fc(lin(['#ecc39a','#c9905f']))},'solid');
-    add('path',{d:`M${cx-s*.118} ${hc-s*.02} Q${cx-s*.12} ${hc-s*.15} ${cx} ${hc-s*.15} Q${cx+s*.12} ${hc-s*.15} ${cx+s*.118} ${hc-s*.02} Q${cx} ${hc-s*.09} ${cx-s*.118} ${hc-s*.02}Z`,fill:fc('#2b2235')},'solid');
-    add('circle',{cx,cy:hc-s*.17,r:s*.05,fill:fc('#2b2235')},'solid');
-    const ink = folk&&folk.warli ? folk.c[0] : '#4a2a1a';
-    out.push(`<path d="M${cx-s*.07} ${hc+s*.005} q${s*.03} ${s*.02} ${s*.055} 0 M${cx+s*.015} ${hc+s*.005} q${s*.03} ${s*.02} ${s*.055} 0" fill="none" stroke="${ink}" stroke-width="${(s*.008).toFixed(1)}" stroke-linecap="round"/>`);
-    out.push(`<path d="M${cx-s*.025} ${hc+s*.07} q${s*.025} ${s*.015} ${s*.05} 0" fill="none" stroke="${ink}" stroke-width="${(s*.007).toFixed(1)}" stroke-linecap="round"/>`);
-    out.push(`<circle cx="${cx}" cy="${(hc-s*.04).toFixed(1)}" r="${(s*.009).toFixed(1)}" fill="#c0392b"/>`); }
-  function peacock(cx,base,s){ for (let k=0;k<17;k++){ const a=Math.PI*(1.08+k*.84/16), ex=cx+Math.cos(a)*s*1.05, ey=base-s*.42+Math.sin(a)*s*.95;
-      add('path',{d:`M${cx} ${base-s*.42} Q${(cx+ex)/2+rnd(-6,6)} ${(base-s*.42+ey)/2} ${ex} ${ey}`,fill:'none',stroke:fc('#3ba55c'),'stroke-width':s*.025,'stroke-linecap':'round'});
-      add('ellipse',{cx:ex,cy:ey,rx:s*.085,ry:s*.12,fill:fc('#2ec4b6'),transform:`rotate(${(a*180/Math.PI+90).toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)})`},'body');
-      add('ellipse',{cx:ex,cy:ey,rx:s*.05,ry:s*.07,fill:fc('#1e50a2'),transform:`rotate(${(a*180/Math.PI+90).toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)})`},'solid');
-      add('circle',{cx:ex,cy:ey,r:s*.022,fill:fc('#f7c531')},'solid'); }
-    add('path',{d:`M${cx-s*.18} ${base-s*.25} Q${cx-s*.2} ${base-s*.55} ${cx-s*.03} ${base-s*.72} Q${cx+s*.04} ${base-s*.6} ${cx+s*.02} ${base-s*.45} Q${cx+s*.22} ${base-s*.35} ${cx+s*.15} ${base-s*.2} Q${cx} ${base-s*.12} ${cx-s*.18} ${base-s*.25}Z`,fill:fc(lin(['#2b6fd6','#123b8a']))},'body');
-    add('circle',{cx:cx-s*.02,cy:base-s*.76,r:s*.06,fill:fc('#2b6fd6')},'solid'); add('path',{d:`M${cx-s*.08} ${base-s*.76} L${cx-s*.15} ${base-s*.74} L${cx-s*.08} ${base-s*.72}Z`,fill:fc('#e8a33d')},'solid');
-    for (let i=-1;i<=1;i++){ line(`M${cx-s*.02} ${base-s*.82} L${cx-s*.02+i*s*.05} ${base-s*.93}`,folk?folk.line:'#123b8a',2); add('circle',{cx:cx-s*.02+i*s*.05,cy:base-s*.94,r:s*.015,fill:fc('#2ec4b6')},'solid'); }
-    line(`M${cx-s*.03} ${base-s*.16} L${cx-s*.05} ${base}`, folk?folk.line:'#8a6a3d', 3); line(`M${cx+s*.05} ${base-s*.16} L${cx+s*.07} ${base}`, folk?folk.line:'#8a6a3d', 3); }
-  function elephant(cx,base,s,dir=1){ const X=(v)=>cx+dir*v;
-    add('ellipse',{cx:X(0),cy:base-s*.5,rx:s*.5,ry:s*.3,fill:fc(lin(['#8b8f9a','#5e626d']))},'body');
-    for (const lx of [-.35,-.12,.12,.32]) add('rect',{x:X(lx*s)-s*.06,y:base-s*.32,width:s*.12,height:s*.32,fill:fc(lin(['#7b7f8a','#545862']))},'body');
-    add('circle',{cx:X(s*.5),cy:base-s*.62,r:s*.22,fill:fc(lin(['#8b8f9a','#5e626d']))},'body');
-    add('path',{d:`M${X(s*.66)} ${base-s*.55} Q${X(s*.78)} ${base-s*.3} ${X(s*.7)} ${base-s*.08} Q${X(s*.64)} ${base-s*.02} ${X(s*.6)} ${base-s*.1} Q${X(s*.66)} ${base-s*.3} ${X(s*.55)} ${base-s*.48}Z`,fill:fc('#6e727d')},'body');
-    add('ellipse',{cx:X(s*.38),cy:base-s*.62,rx:s*.13,ry:s*.18,fill:fc('#9a7f8a')},'body');
-    add('path',{d:`M${X(s*.62)} ${base-s*.48} Q${X(s*.78)} ${base-s*.42} ${X(s*.8)} ${base-s*.5}`,fill:'none',stroke:'#fffbe8','stroke-width':s*.025,'stroke-linecap':'round'},'solid');
-    add('path',{d:`M${X(-s*.3)} ${base-s*.78} H${X(s*.25)} V${base-s*.45} Q${X(0)} ${base-s*.35} ${X(-s*.3)} ${base-s*.45}Z`,fill:fc(lin(['#d7263d','#9b1d20']))},'body');
-    for (let i=0;i<6;i++) add('circle',{cx:X(-s*.25+i*s*.1),cy:base-s*.46,r:s*.02,fill:fc('#f7c531')},'solid');
-    add('circle',{cx:X(s*.57),cy:base-s*.68,r:s*.018,fill:'#1b1b1b'},'solid'); }
-  function fort(cx,base,s){ add('path',{d:`M${cx-s*1.2} ${base} Q${cx} ${base-s*.35} ${cx+s*1.2} ${base}Z`,fill:fc(lin(['#c98a4b','#8a5a2b']))},'body');
-    const wy=base-s*.28; add('rect',{x:cx-s*.8,y:wy-s*.3,width:s*1.6,height:s*.3,fill:fc(lin(['#e8b878','#b9784a']))},'body');
-    for (let i=0;i<16;i++) add('rect',{x:cx-s*.8+i*s*.1,y:wy-s*.35,width:s*.06,height:s*.05,fill:fc('#d9a066')});
-    for (const tx of [-.8,-.3,.25,.75]){ add('rect',{x:cx+tx*s-s*.09,y:wy-s*.55,width:s*.18,height:s*.55,fill:fc(lin(['#efc48a','#c08050']))},'body'); add('path',{d:`M${cx+tx*s-s*.11} ${wy-s*.55} Q${cx+tx*s} ${wy-s*.75} ${cx+tx*s+s*.11} ${wy-s*.55}Z`,fill:fc('#f2d29a')});
-      add('path',{d:`M${cx+tx*s-s*.03} ${wy-s*.25} V${wy-s*.33} Q${cx+tx*s} ${wy-s*.38} ${cx+tx*s+s*.03} ${wy-s*.33} V${wy-s*.25}Z`,fill:fc('#5b3a29')},'solid'); }
-    add('path',{d:`M${cx-s*.08} ${wy} V${wy-s*.16} Q${cx} ${wy-s*.25} ${cx+s*.08} ${wy-s*.16} V${wy}Z`,fill:fc('#3b2418')},'solid'); }
-  function camel(x,base,s,dir=1){ const X=(v)=>x+dir*v; const c=fc(lin(['#d9a066','#a8743f']));
-    add('ellipse',{cx:X(0),cy:base-s*.55,rx:s*.35,ry:s*.16,fill:c},'body'); add('ellipse',{cx:X(-s*.02),cy:base-s*.7,rx:s*.16,ry:s*.13,fill:c},'body');
-    add('path',{d:`M${X(s*.28)} ${base-s*.6} Q${X(s*.45)} ${base-s*.65} ${X(s*.47)} ${base-s*.95} L${X(s*.55)} ${base-s*.95} Q${X(s*.52)} ${base-s*.6} ${X(s*.32)} ${base-s*.5}Z`,fill:c},'body');
-    add('ellipse',{cx:X(s*.6),cy:base-s*.95,rx:s*.1,ry:s*.05,fill:c},'body');
-    for (const lx of [-.25,-.12,.15,.27]) line(`M${X(lx*s)} ${base-s*.45} L${X(lx*s+s*.02)} ${base}`, folk?folk.line:'#8a5a2b', s*.04);
-    add('path',{d:`M${X(-s*.2)} ${base-s*.72} H${X(s*.18)} V${base-s*.6} H${X(-s*.2)}Z`,fill:fc('#d7263d')}); }
-  function person(x,base,s,kind){ const sari=fc(pick(['#d7263d','#f28c1e','#ec4e9c','#0e9aa7','#8e44ad','#f7c531']));
-    if (folk&&folk.warli){ add('circle',{cx:x,cy:base-s*.85,r:s*.08},'solid'); add('path',{d:`M${x-s*.16} ${base-s*.75} L${x+s*.16} ${base-s*.75} L${x} ${base-s*.45}Z`},'solid'); add('path',{d:`M${x-s*.14} ${base} L${x+s*.14} ${base} L${x} ${base-s*.45}Z`},'solid');
-      line(`M${x-s*.14} ${base-s*.7} L${x-s*.3} ${base-s*.5} M${x+s*.14} ${base-s*.7} L${x+s*.3} ${base-s*.85}`,folk.c[0],3,1,'solid'); return; }
-    add('path',{d:`M${x-s*.2} ${base} L${x-s*.1} ${base-s*.62} L${x+s*.1} ${base-s*.62} L${x+s*.2} ${base}Z`,fill:sari},'body');
-    add('path',{d:`M${x-s*.1} ${base-s*.62} Q${x+s*.25} ${base-s*.5} ${x+s*.18} ${base-s*.1}`,fill:'none',stroke:fc('#f7c531'),'stroke-width':s*.04});
-    add('circle',{cx:x,cy:base-s*.72,r:s*.09,fill:fc(skin)},'solid'); add('path',{d:`M${x-s*.09} ${base-s*.73} Q${x} ${base-s*.86} ${x+s*.09} ${base-s*.73} Q${x+s*.12} ${base-s*.6} ${x+s*.07} ${base-s*.55}`,fill:fc('#1b1b2f')},'solid');
-    line(`M${x-s*.1} ${base-s*.55} L${x-s*.22} ${base-s*.3}`, fc(skin), s*.035); }
-  function kites(){ for (let i=0;i<7;i++){ const kx=rnd(w*.08,w*.92), ky=rnd(h*.08,hy-h*.25), ks=rnd(h*.035,h*.06); const kc=fc(pick(['#d7263d','#f7c531','#ec4e9c','#0e9aa7','#f28c1e','#3ba55c']));
-      add('path',{d:`M${kx} ${ky-ks} L${kx+ks*.8} ${ky} L${kx} ${ky+ks*1.1} L${kx-ks*.8} ${ky}Z`,fill:kc},'body'); line(`M${kx} ${ky-ks} L${kx} ${ky+ks*1.1} M${kx-ks*.8} ${ky} L${kx+ks*.8} ${ky}`, folk?folk.line:'#5b3a29', 1.2, .7);
-      line(`M${kx} ${ky+ks*1.1} Q${kx+rnd(-60,60)} ${ky+ks*4} ${kx+rnd(-120,120)} ${hy+h*.05}`, folk?folk.line:'#5b3a29', 1, .6); }
-    for (let x=0;x<w;){ const bw=rnd(w*.08,w*.16), bh=rnd(h*.12,h*.24); add('rect',{x,y:h-bh,width:bw,height:bh,fill:fc(lin([pick(['#f3d6a8','#e7a86b','#f0c890','#d9b38c','#e9c6c0']),'#b9784a']))},'body');
-      add('rect',{x:x+bw*.1,y:h-bh-h*.03,width:bw*.8,height:h*.03,fill:fc('#c98f63')}); if (R()<.6) person(x+bw*.5,h-bh,h*.12);
-      for (let r=0;r<2;r++) add('rect',{x:x+bw*(.2+r*.4),y:h-bh+bh*.3,width:bw*.18,height:bh*.2,fill:fc('#5b3a29'),opacity:folk?null:.55},'solid'); x+=bw; } }
-  function diyas(y){ const n=Math.round(w/90); for (let i=0;i<n;i++){ const x=(i+.5)*w/n+rnd(-10,10), s=h*.022;
-      if (!folk) add('circle',{cx:x,cy:y-s*1.2,r:s*2.2,fill:rad('#ffd27a','#ffd27a',.6,0)},'bg');
-      add('path',{d:`M${x-s} ${y-s*.2} Q${x} ${y+s*.9} ${x+s} ${y-s*.2}Z`,fill:fc(lin(['#f28c1e','#8a3b0f']))},'body');
-      add('path',{d:`M${x} ${y-s*.3} Q${x-s*.35} ${y-s*.9} ${x} ${y-s*1.7} Q${x+s*.35} ${y-s*.9} ${x} ${y-s*.3}Z`,fill:fc('#ffe08a')},'solid'); } }
-  function birds(n){ for (let i=0;i<n;i++){ const bx=rnd(w*.1,w*.9), by=rnd(h*.08,hy*.55), bs=rnd(8,16); line(`M${bx-bs} ${by-bs*.3} Q${bx-bs*.4} ${by-bs*.6} ${bx} ${by} Q${bx+bs*.4} ${by-bs*.6} ${bx+bs} ${by-bs*.3}`, folk?(folk.warli?folk.c[0]:folk.line):'#2a1d3a', 2.2,1,'solid'); } }
-  function palm(x,base,s,lean){ line(`M${x} ${base} Q${x+lean*.4} ${base-s*.5} ${x+lean} ${base-s}`, fc('#7a5230'), s*.05);
-    for (let i=0;i<8;i++){ const a=-Math.PI/2+(i-3.5)*.42, ex=x+lean+Math.cos(a)*s*.45, ey=base-s+Math.sin(a)*s*.3+s*.12; add('path',{d:`M${x+lean} ${base-s} Q${(x+lean+ex)/2} ${ey-s*.12} ${ex} ${ey} Q${(x+lean+ex)/2} ${ey-s*.04} ${x+lean} ${base-s}Z`,fill:fc(lin(['#5fae5a','#2f6f3a']))},'body'); } }
-  function huts(n){ for (let i=0;i<n;i++){ const x=rnd(w*.05,w*.85), s=rnd(h*.09,h*.13), b=hy+rnd(h*.02,h*.08);
-      add('rect',{x,y:b-s*.5,width:s,height:s*.5,fill:fc(lin(['#e3b27e','#b9784a']))},'body'); add('path',{d:`M${x-s*.15} ${b-s*.5} L${x+s*.5} ${b-s} L${x+s*1.15} ${b-s*.5}Z`,fill:fc(lin(['#c9a24a','#8a6a2d']))},'body');
-      add('rect',{x:x+s*.4,y:b-s*.3,width:s*.2,height:s*.3,fill:fc('#4a2f1b')},'solid'); } }
-  function mandala(cx,cy,r){ for (let ring=3;ring>=1;ring--){ const n=ring*8, rr=r*ring/3; for (let i=0;i<n;i++){ const a=i*2*Math.PI/n, x1=cx+Math.cos(a)*rr*.45, y1=cy+Math.sin(a)*rr*.45, x2=cx+Math.cos(a)*rr, y2=cy+Math.sin(a)*rr;
-      const nx=-Math.sin(a)*rr*.12, ny=Math.cos(a)*rr*.12; add('path',{d:`M${x1} ${y1} Q${(x1+x2)/2+nx} ${(y1+y2)/2+ny} ${x2} ${y2} Q${(x1+x2)/2-nx} ${(y1+y2)/2-ny} ${x1} ${y1}Z`,fill:fc(['#f7c531','#ec4e9c','#0e9aa7'][ring-1])},'body'); } }
-    add('circle',{cx,cy,r:r*.15,fill:fc('#d7263d')},'solid'); }
-  function deer(x,base,s){ const c=fc(lin(['#c98a4b','#8a5a2b'])); add('ellipse',{cx:x,cy:base-s*.55,rx:s*.3,ry:s*.13,fill:c},'body'); add('path',{d:`M${x+s*.22} ${base-s*.6} L${x+s*.32} ${base-s*.9} L${x+s*.4} ${base-s*.88} L${x+s*.32} ${base-s*.55}Z`,fill:c},'body');
-    add('ellipse',{cx:x+s*.38,cy:base-s*.92,rx:s*.08,ry:s*.05,fill:c},'body'); line(`M${x+s*.35} ${base-s*.96} l-${s*.06} -${s*.14} M${x+s*.38} ${base-s*.96} l${s*.04} -${s*.15}`, folk?folk.line:'#5b3a29', 2);
-    for (const lx of [-.2,-.1,.12,.2]) line(`M${x+lx*s} ${base-s*.45} L${x+lx*s} ${base}`, folk?folk.line:'#6b4423', s*.035);
-    for (let i=0;i<5;i++) add('circle',{cx:x+rnd(-s*.2,s*.15),cy:base-s*.57+rnd(-s*.05,s*.05),r:s*.02,fill:'#fff3dc'},'solid'); }
-  function cow(x,base,s){ const c=fc(lin(['#f4efe6','#cfc6b5'])); add('ellipse',{cx:x,cy:base-s*.5,rx:s*.36,ry:s*.18,fill:c},'body'); add('ellipse',{cx:x+s*.4,cy:base-s*.6,rx:s*.12,ry:s*.08,fill:c},'body');
-    line(`M${x+s*.36} ${base-s*.68} q-${s*.04} -${s*.1} ${s*.02} -${s*.12} M${x+s*.46} ${base-s*.68} q${s*.04} -${s*.1} -${s*.02} -${s*.12}`, folk?folk.line:'#8a6a3d', 3);
-    for (const lx of [-.25,-.12,.12,.25]) line(`M${x+lx*s} ${base-s*.38} L${x+lx*s} ${base}`, folk?folk.line:'#a89a85', s*.045); add('path',{d:`M${x-s*.1} ${base-s*.68} H${x+s*.15} V${base-s*.5} H${x-s*.1}Z`,fill:fc('#d7263d')}); }
-  function fish(x,y,s){ add('path',{d:`M${x-s} ${y} Q${x} ${y-s*.6} ${x+s*.6} ${y} Q${x} ${y+s*.6} ${x-s} ${y}Z M${x+s*.6} ${y} L${x+s} ${y-s*.35} L${x+s} ${y+s*.35}Z`,fill:fc('#f28c1e')},'body'); add('circle',{cx:x-s*.6,cy:y-s*.08,r:s*.07,fill:'#1b1b1b'},'solid'); }
-  // ---------- composition ----------
-  const S=new Set(U.subj); const used=[];
-  const focalX = w*.5;
-  if (S.has('ghats')){ ghats(); used.push('ghats'); }
-  if (S.has('village')){ huts(4); used.push('village'); }
-  if (S.has('fort')){ fort(w*(S.size>1?.68:.5), hy+h*.02, h*.42); used.push('fort'); }
-  if (S.has('temple') && !S.has('ghats')){ temple(S.has('buddha')||S.has('people') ? w*.22 : focalX, hy+h*.08, h*.62); used.push('temple'); }
-  if (S.has('palm')){ palm(w*.08, hy+h*.12, h*.5, w*.06); palm(w*.92, hy+h*.14, h*.46, -w*.07); palm(w*.82, hy+h*.08, h*.38, -w*.03); used.push('palms'); }
-  if (S.has('camel')){ for (let i=0;i<3;i++) camel(w*(.25+i*.18), hy+h*.12+i*h*.02, h*.2, 1); used.push('camels'); }
-  if (U.water && (S.has('boat') || S.has('ghats'))){ const n=S.has('ghats')?4:3; for (let i=0;i<n;i++) boat(rnd(w*.12,w*.88), rnd(hy+h*.08,h*.82), rnd(h*.06,h*.1), S.has('boat') && /kerala|houseboat|backwater/.test((text||'').toLowerCase()) && i===0); used.push('boats'); }
-  if (S.has('tree')){ const kind=/bodhi|peepal/.test((text||'').toLowerCase())||S.has('buddha')?'bodhi':/banyan/.test((text||'').toLowerCase())?'banyan':'round'; tree(S.has('buddha')? focalX : S.has('people')? w*.62 : (S.has('peacock')||S.has('elephant')||S.has('deer')||S.has('cow')||S.has('temple')) ? w*.2 : focalX, hy+h*.2, h*.85, kind); used.push('tree'); }
-  if (S.has('mandala')){ mandala(focalX, S.has('buddha')? h*.32 : h*.46, h*.3); used.push('mandala'); }
-  if (S.has('buddha')){ buddha(focalX, h*.9, h*(S.has('tree')?.5:.56)); used.push('Buddha'); }
-  if (S.has('elephant')){ elephant(S.has('buddha')?w*.18:w*.42, h*.9, h*.42, 1); used.push('elephant'); }
-  if (S.has('peacock')){ peacock(S.has('buddha')||S.has('elephant')? w*.8 : focalX, h*.9, h*(S.size>1?.3:.42)); used.push('peacock'); }
-  if (S.has('deer')){ deer(w*.72, h*.88, h*.22); deer(w*.84, h*.9, h*.18); used.push('deer'); }
-  if (S.has('cow')){ cow(w*.7, h*.9, h*.24); used.push('cow'); }
-  if (S.has('people')){ const n=/family|children|people|dancer/.test((text||'').toLowerCase())?4:2; for (let i=0;i<n;i++) person(w*(.3+i*.12), h*.92, h*(i%2?.3:.38)); used.push('people'); }
-  if (S.has('kite')){ kites(); used.push('kites'); }
-  if (S.has('lotus') || (U.water && !S.has('ghats') && !S.has('boat'))){ if (U.water) for (let i=0;i<4;i++){ const busy = S.has('buddha')||S.has('peacock')||S.has('elephant'); const lx = busy ? (i%2 ? rnd(w*.06,w*.28) : rnd(w*.72,w*.94)) : rnd(w*.08,w*.92); lotus(lx, rnd(h*.8,h*.95), h*rnd(.06,.09)); } else lotus(w*.15,h*.95,h*.08,false); used.push('lotus'); }
-  if (S.has('fish')){ for (let i=0;i<5;i++) fish(rnd(w*.1,w*.9), rnd(hy+h*.1,h*.95), h*.035); used.push('fish'); }
-  if (S.has('bird') || R()<.6) { birds(S.has('bird')?9:4); if (S.has('bird')) used.push('birds'); }
-  if (S.has('diya') || (S.has('ghats') && U.time!=='day')){ diyas(h*.97); if (U.water && !folk) for (let i=0;i<14;i++){ const x=rnd(0,w), y=rnd(hy+h*.05,h*.9); add('circle',{cx:x,cy:y,r:h*.025,fill:rad('#ffd27a','#ffd27a',.7,0)},'bg'); add('circle',{cx:x,cy:y,r:h*.005,fill:'#fff6c4'},'solid'); } used.push('diyas'); }
-  if (!used.length){ // nothing recognised: a calm, beautiful landscape with a tree, flowers and birds
-    tree(w*.7, hy+h*.2, h*.7, 'round'); if (U.water) for (let i=0;i<3;i++) lotus(rnd(w*.1,w*.6), rnd(h*.82,h*.95), h*.07); }
-  if (!U.water && !U.desert && !S.has('kite')) for (let i=0;i<60;i++){ const x=rnd(0,w), y=rnd(h*.88,h); const c=fc(pick(['#f7c531','#ec4e9c','#fff8e7','#f28c1e','#d7263d'])); add('circle',{cx:x,cy:y,r:rnd(3,7),fill:c},'solid'); }
-  if (U.time==='monsoon' && !folk) for (let i=0;i<160;i++){ const x=rnd(0,w), y=rnd(0,h); line(`M${x} ${y} l-6 18`,'#dfe8f2',1.2,.5); }
-  if (U.time==='snow' && !folk) for (let i=0;i<120;i++) add('circle',{cx:rnd(0,w),cy:rnd(0,h),r:rnd(1.2,3.2),fill:'#ffffff',opacity:rnd(.6,1)},'bg');
-  if (style==='oil') for (let i=0;i<260;i++){ const x=rnd(0,w), y=rnd(0,h); add('ellipse',{cx:x,cy:y,rx:rnd(4,12),ry:rnd(1.5,3),fill:y<hy?pick(pal.sky):pick([...pal.land,...pal.water]),opacity:rnd(.12,.3),transform:`rotate(${rnd(-30,30).toFixed(0)} ${x.toFixed(0)} ${y.toFixed(0)})`},'bg'); }
-  // ---------- borders ----------
-  if (folk && folk.border==='madhubani'){ const b=Math.min(w,h)*.045; add('path',{d:`M0 0H${w}V${h}H0Z M${b} ${b}V${h-b}H${w-b}V${b}Z`,fill:'#d7263d','fill-rule':'evenodd'});
-    for (let x=b;x<w-b;x+=b) { add('path',{d:`M${x} ${b*.15}L${x+b/2} ${b*.85}L${x+b} ${b*.15}Z`,fill:'#f7c531'},'solid'); add('path',{d:`M${x} ${h-b*.15}L${x+b/2} ${h-b*.85}L${x+b} ${h-b*.15}Z`,fill:'#f7c531'},'solid'); }
-    for (let y=b;y<h-b;y+=b) { add('path',{d:`M${b*.15} ${y}L${b*.85} ${y+b/2}L${b*.15} ${y+b}Z`,fill:'#3ba55c'},'solid'); add('path',{d:`M${w-b*.15} ${y}L${w-b*.85} ${y+b/2}L${w-b*.15} ${y+b}Z`,fill:'#3ba55c'},'solid'); } }
-  if (folk && folk.border==='miniature'){ const b=Math.min(w,h)*.06; add('path',{d:`M0 0H${w}V${h}H0Z M${b} ${h-b}V${b*2.4} Q${w/2} ${-b*.6} ${w-b} ${b*2.4}V${h-b}Z`,fill:'#9b1d20','fill-rule':'evenodd'});
-    add('path',{d:`M${b} ${h-b}V${b*2.4} Q${w/2} ${-b*.6} ${w-b} ${b*2.4}V${h-b}Z`,fill:'none',stroke:'#e8b84a','stroke-width':b*.18});
-    for (let x=b*.5;x<w;x+=b) { add('circle',{cx:x,cy:h-b*.5,r:b*.18,fill:'#e8b84a'},'solid'); } }
-  if (folk && folk.warli) add('path',{d:`M0 0H${w}V${h}H0Z M14 14V${h-14}H${w-14}V14Z`,fill:'#7a3a20','fill-rule':'evenodd'},'bg');
-  return { svg:`<defs>${defs.join('')}</defs>\n${out.join('\n')}`, understood:U, used };
-}
-
-// =====================================================================================
 // modes
 // =====================================================================================
 function setMode(m){
   state.mode=m; document.querySelectorAll('.tab').forEach((t)=>t.setAttribute('aria-selected', t.dataset.mode===m));
-  ['create','paint','draw','color','learn'].forEach((k)=>{ $('#panel-'+k).hidden = k!==m; });
-  csvg.toggleAttribute('hidden', m!=='create'); cv.sketch.hidden = !(m==='create' && state.useSketch); $('#wallView').hidden = !(m==='create' && state.wall);
+  ['paint','draw','color','learn'].forEach((k)=>{ $('#panel-'+k).hidden = k!==m; });
   cv.sky.hidden = cv.paint.hidden = m!=='paint';
   cv.bg.hidden = cv.ink.hidden = cv.guide.hidden = m!=='draw';
   svg.toggleAttribute('hidden', m!=='color'); $('#learnGuide').toggleAttribute('hidden', m!=='learn'); cv.learn.hidden = m!=='learn';
-  stage.style.background = m==='draw' ? state.bg : m==='paint' ? '#1d0b3f' : m==='create' ? '#e9e1d2' : '#fffaf0';
+  stage.style.background = m==='draw' ? state.bg : m==='paint' ? '#1d0b3f' : '#fffaf0';
   if (m==='learn') renderLearn();
   paintGuides();
   try { localStorage.setItem('rangoli-mode', m); } catch(e){}
@@ -1177,11 +936,10 @@ window.addEventListener('resize', ()=>{ clearTimeout(fit._t); fit._t=setTimeout(
 // start in a real working state: a finished painting, a finished rangoli, a coloured design, a lesson ready
 W = 0; fit(); demoPaint(); surprise(true); undo.length=0;
 generate(); magic(true); history=[];
-renderLearn(); quickPaint();
-const HAS_AI = !!(window.claude && window.claude.use);
+renderShelf(); renderLearn();
 
-let startMode = $('#tab-create').hidden ? 'paint' : 'create'; try { startMode = localStorage.getItem('rangoli-mode') || startMode; } catch(e){}
-if (startMode==='create' && $('#tab-create').hidden) startMode='paint';
+let startMode = 'learn'; try { startMode = localStorage.getItem('rangoli-mode') || startMode; } catch(e){}
+if (!['paint','draw','color','learn'].includes(startMode)) startMode='learn';
 setMode(startMode);
 })();
 </script>

@@ -222,6 +222,7 @@
 
   // =============================================================================== CLASS 3 – Arts (Bansuri)
   add('c3', 'arts', 1, '🖍️', T('Visual Arts: look, draw, colour', 'दृश्य कला: देखो, बनाओ, रंगो'), [
+    { type: 'learndraw', title: T('Learn to draw step by step', 'चरण-दर-चरण चित्र बनाना सीखो'), lessons: ['apple', 'tree', 'house', 'fish', 'sun'], skills: ['creativity', 'focus'] },
     { type: 'draw', title: T('Draw what you see around you', 'आस-पास जो दिखे, बनाओ'), prompt: T('Look out of the window and draw one thing you see. Use at least three colours!', 'खिड़की से बाहर देखो और एक चीज़ बनाओ। कम से कम तीन रंग इस्तेमाल करो!') },
     QZ(T('Colours and shapes', 'रंग और आकार'), [Q('🎨', T('Red + yellow make…', 'लाल + पीला =…'), T('orange', 'नारंगी'), [T('green', 'हरा'), T('blue', 'नीला')]), Q('🌈', T('Primary colours are…', 'मूल रंग हैं…'), T('red, yellow, blue', 'लाल, पीला, नीला'), [T('pink, brown, grey', 'गुलाबी, भूरा, स्लेटी'), T('black and white', 'काला-सफ़ेद')]), Q('🍃', T('Making a print with a leaf is called…', 'पत्ते से छाप बनाना…'), T('leaf printing', 'पत्ता छपाई'), [T('sculpture', 'मूर्ति'), T('dancing', 'नृत्य')])], 3),
   ]);

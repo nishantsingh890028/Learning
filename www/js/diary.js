@@ -110,7 +110,7 @@
     const lv = Math.min(4, K.level(c));
     // revision: something played on an earlier day, least practised first
     const earlier = Object.keys(c.days).filter((k) => k < day).flatMap((k) => c.days[k].done || []);
-    const seen = [...new Set(earlier)].map((id) => K.byId && K.byId(id)).filter((a) => a && a.type !== 'vocabday' && !['draw', 'colour', 'rangoli'].includes(a.type));
+    const seen = [...new Set(earlier)].map((id) => K.byId && K.byId(id)).filter((a) => a && a.type !== 'vocabday' && !['draw', 'colour', 'rangoli', 'learndraw'].includes(a.type));
     let rev = seen.sort((a, b) => (c.counts[a.id] || 0) - (c.counts[b.id] || 0))[0];
     if (!rev && K.nextLesson) { const lang = c.medium === 'hi' ? 'hindi' : 'english'; rev = K.nextLesson(dayNo() % 2 ? 'maths' : lang, c, d.plan || []); }
     const notes = NOTE[lv];

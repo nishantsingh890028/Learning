@@ -1,4 +1,8 @@
-# Khel Khel Mein: Play & Learn (Android) – v4.3
+# Khel Khel Mein: Play & Learn (Android) – v4.4
+
+## What's new in v4.4
+- **Learn to draw with Golu (Creative world):** 23 step-by-step pictures on four shelves – fruits (mango, apple, banana, strawberry, watermelon), animals (cat, fish, butterfly, turtle, horse, elephant), things (house, tree, sun, star, kite, boat, car) and Indian art (rangoli flower, lotus, diya, peacock feather, paisley). Each step shows a dotted line; trace it and it snaps perfect in your pen colour. "Show me" makes Golu's pencil draw the step first. Finished pictures come alive in colour; tap any part to paint it, or press "Surprise colours". Every picture earns a star on the shelf and is saved to the art gallery. Steps are spoken in English and Hindi.
+- **In the Arts chapters too:** Class 1–3 "Visual Arts" starts with a five-picture drawing lesson; Class 4–5 "Folk art of India" has paisley, lotus, peacock feather, diya, horse and elephant.
 
 ## What's new in v4.3
 - **Golu speaks once:** for English + Hindi children Golu now speaks one language (Grown-ups → Settings → "Golu speaks": English, Hindi or both). Both languages stay written on screen; tap 🔊 again to hear the other language. Hindi lessons are no longer read (and shown) twice, and Golu's bubble no longer repeats the question already on screen.

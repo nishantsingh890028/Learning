@@ -58,6 +58,11 @@ window.CUR = window.CUR || [];
       ] },
 
     // ---------------------------------------------------------- CREATIVITY
+    { id: 'c-learndraw', world: 'creative', type: 'learndraw', levels: [1, 2, 3], free: true, title: { en: 'Learn to draw with Golu', hi: 'गोलू के साथ चित्र बनाना सीखो' }, skills: ['creativity', 'focus'] },
+    { id: 'c-learndraw-fruits', world: 'creative', type: 'learndraw', levels: [1, 2, 3], free: true, lessons: ['apple', 'mango', 'banana', 'strawberry', 'watermelon'], title: { en: 'Draw yummy fruits', hi: 'मज़ेदार फल बनाओ' }, skills: ['creativity', 'focus'] },
+    { id: 'c-learndraw-animals', world: 'creative', type: 'learndraw', levels: [1, 2, 3], lessons: ['fish', 'cat', 'butterfly', 'turtle'], title: { en: 'Draw animal friends', hi: 'जानवर दोस्त बनाओ' }, skills: ['creativity', 'focus'] },
+    { id: 'c-learndraw-big', world: 'creative', type: 'learndraw', levels: [2, 3], lessons: ['horse', 'elephant', 'house', 'boat', 'car'], title: { en: 'Draw a horse, an elephant and more', hi: 'घोड़ा, हाथी और बहुत कुछ बनाओ' }, skills: ['creativity', 'focus'] },
+    { id: 'c-learndraw-india', world: 'creative', type: 'learndraw', levels: [1, 2, 3], lessons: ['diya', 'lotus', 'kite', 'feather', 'flower'], title: { en: 'Draw Indian art', hi: 'भारतीय कला बनाओ' }, skills: ['creativity', 'focus'] },
     { id: 'c-draw-family', world: 'creative', type: 'draw', levels: [1, 2, 3], free: true, title: { en: 'Draw your family', hi: 'अपना परिवार बनाओ' }, prompt: { en: 'Draw your family! Who lives in your house?', hi: 'अपना परिवार बनाओ! तुम्हारे घर में कौन-कौन रहता है?' }, skills: ['creativity', 'emotions'], talk: { en: 'Ask your child to tell you about the drawing they made today.', hi: 'बच्चे से आज बनाई ड्रॉइंग के बारे में पूछें।' } },
     { id: 'c-draw-sunny', world: 'creative', type: 'draw', levels: [1, 2], title: { en: 'A sunny day', hi: 'धूप वाला दिन' }, prompt: { en: 'Draw a sunny day with a tree and a house.', hi: 'पेड़ और घर के साथ धूप वाला दिन बनाओ।' }, skills: ['creativity'] },
     { id: 'c-draw-dream', world: 'creative', type: 'draw', levels: [2, 3], title: { en: 'My dream house', hi: 'मेरे सपनों का घर' }, prompt: { en: 'Imagine your dream house. What is special about it?', hi: 'अपने सपनों का घर सोचो। उसमें क्या ख़ास है?' }, skills: ['creativity', 'imagination'] },
