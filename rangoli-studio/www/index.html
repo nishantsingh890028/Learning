@@ -71,6 +71,7 @@ input[type=range]{width:100%;accent-color:var(--haldi)}
 #learnGuide .final{transform-origin:200px 200px}
 @media (prefers-reduced-motion:reduce){#learnGuide .now,#learnGuide .final{animation:none}.sw.flash{animation:none}}
 #colorSvg .r{cursor:pointer}
+#createSvg{overflow:hidden}
 #colorSvg text{font-family:var(--body);font-weight:800;fill:#7a6aa8;pointer-events:none}
 #learnGuide .inked{fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
 .wall{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#efe6d6 0 74%,#c9b391 74% 100%)}
@@ -119,13 +120,14 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 24px;color:var(--muted);fon
   <section class="panel" id="panel-create" aria-labelledby="tab-create">
     <h2>Paint anything you imagine</h2>
     <label class="label" for="cPrompt">What should we paint?</label>
-    <textarea id="cPrompt" placeholder="Varanasi ghats at sunrise with boats and diyas"></textarea>
+    <textarea id="cPrompt" placeholder="Type anything: Buddha under a bodhi tree, Varanasi ghats at sunrise, peacock in the rain…">Buddha meditating under a bodhi tree at sunrise with lotus flowers</textarea>
+    <p class="hint">It paints as you type. Every idea, style and frame you tap changes the picture right away.</p>
     <div class="row" id="ideaRow"></div>
     <div class="group"><span class="label">Art style</span><div class="row" id="cstyleRow"></div></div>
     <div class="group"><span class="label">Frame</span><div class="row" id="aspectRow"></div></div>
     <div class="row"><button class="chip" id="sketchBtn" aria-pressed="false" hidden>✏️ Start from my sketch</button><button class="btn ghost" id="clearSketchBtn" hidden>Clear sketch</button></div>
-    <div class="row"><button class="btn magic" id="paintBtn">✨ Paint it</button><button class="btn ghost" id="stopBtn" hidden>Stop</button></div>
-    <div class="status" id="cStatus" role="status">An example painting is on the left. Describe your own and press Paint it.</div>
+    <div class="row"><button class="btn alt" id="variantBtn">🎲 New variation</button><button class="btn magic" id="paintBtn">✨ Paint with AI (more detail)</button><button class="btn ghost" id="stopBtn" hidden>Stop</button></div>
+    <div class="status" id="cStatus" role="status">Painting…</div>
     <div class="group" id="remixGroup"><span class="label">Change it</span><div class="row" id="remixRow"></div>
       <div class="row"><input id="remixText" class="chip" style="flex:1;min-width:160px;background:var(--ink);color:#1a1240" placeholder="e.g. add a temple bell and pigeons"><button class="btn ghost" id="remixGo">Change</button></div></div>
     <div class="row"><button class="chip" id="wallBtn" aria-pressed="false">🖼️ See it on my wall</button></div>
@@ -784,9 +786,10 @@ const STYLE_GUIDE = {
   gond:'Gond tribal art from Madhya Pradesh: vivid colours, animals, birds and trees whose bodies are filled with patterns of fine dots, dashes and lines, decorative and joyful, on a plain light background.',
 };
 const STYLE_FX = { watercolour:['pfx-water','pfx-paper'], oil:['pfx-oil','pfx-canvas'], madhubani:[null,'pfx-paper'], warli:[null,'pfx-paper'], miniature:[null,'pfx-paper'], gond:[null,'pfx-paper'] };
-const IDEAS = ['🛕 Varanasi ghats at sunrise with boats and diyas','🛶 Kerala backwaters with a houseboat and coconut palms','🏔️ Himalayan village with prayer flags in the snow','🏰 Rajasthan desert fort at dusk with camels',
-  '🪷 Lotus pond with ducks at golden hour','🦚 Peacock dancing in a monsoon garden','🪁 Children flying kites on rooftops at Sankranti','👵 Grandmother telling stories under a banyan tree'];
-const REMIX = [['🌙 Night','Make it a calm moonlit night with stars and glowing windows'],['🪔 Festive','Add festive lights, diyas, marigold garlands and a few lanterns'],['🌈 Brighter','Make the colours brighter, warmer and more joyful'],['🌧️ Monsoon','Make it a rainy monsoon day with dark clouds, rain and reflections'],['🌸 More life','Add more flowers, birds and small details']];
+const IDEAS = ['🧘 Buddha meditating under a bodhi tree at sunrise with lotus flowers','🛕 Varanasi ghats at sunrise with boats and diyas','🛶 Kerala backwaters with a houseboat and coconut palms','🏔️ Himalayan village with prayer flags in the snow','🏰 Rajasthan desert fort at dusk with camels',
+  '🪷 Lotus pond with ducks at golden hour','🦚 Peacock dancing in a monsoon garden','🪁 Children flying kites on rooftops at Sankranti','👵 Grandmother telling stories under a banyan tree',
+  '🐘 Decorated elephant at a temple festival','🪔 Diwali night with diyas by the river','🌸 Mandala over a calm lake at sunset','🦌 Deer in a forest at dawn'];
+const REMIX = [['🌙 Night','Make it a calm moonlit night with stars and glowing windows','at night'],['🌇 Sunset','Make it golden sunset light','at sunset'],['🪔 Festive','Add festive lights, diyas, marigold garlands and a few lanterns','with diyas'],['🌧️ Monsoon','Make it a rainy monsoon day with dark clouds, rain and reflections','in the monsoon rain'],['❄️ Snow','Make it a snowy winter scene','in the snow'],['🕊️ Birds','Add more flowers, birds and small details','with birds']];
 const FX_DEFS = `<filter id="pfx-water" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="10" xChannelSelector="R" yChannelSelector="G"/></filter>
 <filter id="pfx-oil" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/></filter>
 <filter id="pfx-paper" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="8"/><feColorMatrix type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.36  0 0 0 0 0.28  0 0 0 0.2 0"/></filter>
@@ -830,7 +833,9 @@ ${cur.slice(0,150000)}`; }
 
 let sampleFn = null, sampleImages = false, ctl = null, lastSubject = '';
 const status = (t, busy) => { const s=$('#cStatus'); s.textContent=t; s.classList.toggle('busy',!!busy); };
-function aiOff(msg){ status(msg || 'AI painting works when this page is opened inside Claude. Meanwhile, try Magic Paint.'); }
+let aiShown=false;
+function aiOff(msg){ $('#paintBtn').hidden=true; aiNote = msg || 'The quick painter works everywhere. AI painting (for extra detail) works when this page is opened inside Claude.'; }
+let aiNote='';
 try { if (window.claude && window.claude.use) { window.claude.use('sample').then(async (s)=>{ sampleFn=s; if(!s){ aiOff(); return; }
   try { const lim=await s.limits(); sampleImages=!!(lim && lim.images); } catch(e){} $('#sketchBtn').hidden=!sampleImages; }).catch(()=>aiOff()); } else aiOff(); } catch(e){ aiOff(); }
 function busy(on){ $('#paintBtn').disabled=on; $('#remixGo').disabled=on; $('#remixRow').querySelectorAll('button').forEach((b)=>{ b.disabled=on; }); $('#stopBtn').hidden=!on; }
@@ -838,26 +843,28 @@ async function paint(remixInstr){
   if (!sampleFn){ toast('AI painting needs this page opened in Claude.'); return; }
   const subject = ($('#cPrompt').value.trim() || IDEAS[Math.floor(Math.random()*IDEAS.length)].replace(/^\S+\s/,'')); const [w,h]=SIZES[state.caspect];
   const withSketch = !remixInstr && state.useSketch && sampleImages;
-  const prompt = remixInstr ? remixPrompt(currentContent(), remixInstr, w, h) : paintPrompt(subject, w, h, withSketch);
+  const instr = remixInstr || `Turn this quick draft into a rich, finished, frame-worthy painting of: "${subject}". Keep the general layout, paint every element far more beautifully and in more detail, and add anything from the description that is missing or not drawn well.`;
+  const prompt = withSketch ? paintPrompt(subject, w, h, true) : remixPrompt(currentContent(), instr, w, h);
   const opts = { cache:false, modelTier:'default' };
   if (withSketch) opts.images = [await new Promise((r)=>cv.sketch.toBlob(r,'image/png'))];
-  setupCanvas(); state.useSketch=false; $('#sketchBtn').setAttribute('aria-pressed','false'); cv.sketch.hidden=true; $('#clearSketchBtn').hidden=true; setWall(false);
-  const defsEl=csvg.querySelector('#artDefs'), art=csvg.querySelector('#art');
+  state.useSketch=false; $('#sketchBtn').setAttribute('aria-pressed','false'); cv.sketch.hidden=true; $('#clearSketchBtn').hidden=true; setWall(false);
+  let defsEl=null, art=null, started=false;
+  const begin=()=>{ if (started) return; started=true; setupCanvas(); defsEl=csvg.querySelector('#artDefs'); art=csvg.querySelector('#art'); };
   let pos=0, defsDone=false, count=0;
   const ingest=(t)=>{
     if (!defsDone){ const s=t.indexOf('<defs'); const firstShape=t.search(/<(path|rect|circle|ellipse|polygon|polyline|line)\b/);
-      if (s>=0 && (firstShape<0 || s<firstShape)){ const e=t.indexOf('</defs>',s); if (e<0) return; parseClean(t.slice(s,e+7)).forEach((n)=>{ [...n.childNodes].forEach((c)=>defsEl.appendChild(c)); }); pos=e+7; defsDone=true; }
+      if (s>=0 && (firstShape<0 || s<firstShape)){ const e=t.indexOf('</defs>',s); if (e<0) return; begin(); parseClean(t.slice(s,e+7)).forEach((n)=>{ [...n.childNodes].forEach((c)=>defsEl.appendChild(c)); }); pos=e+7; defsDone=true; }
       else if (firstShape>=0){ defsDone=true; pos=firstShape; } else return; }
     const re=/<(path|rect|circle|ellipse|polygon|polyline|line)\b[^<>]*?(?:\/>|>\s*<\/\1>)/g; re.lastIndex=pos; let m, chunk='';
     while ((m=re.exec(t))){ chunk+=m[0]; pos=re.lastIndex; count++; }
-    if (chunk) parseClean(chunk).forEach((n)=>art.appendChild(n));
+    if (chunk){ begin(); parseClean(chunk).forEach((n)=>art.appendChild(n)); }
   };
   ctl = new AbortController(); opts.signal = ctl.signal; let first=true;
   opts.onText = ({text}) => { if (first){ first=false; } ingest(text); status(`Painting… ${count} brushstrokes`, true); };
   busy(true); status(remixInstr ? 'Repainting with your change… this takes about a minute.' : 'Imagining your painting… this takes about a minute.', true);
   try { const r = await sampleFn(prompt, opts); ingest(r.text);
     if (!count) { status('That did not turn into a painting. Try describing it a little differently.'); return; }
-    if (!remixInstr) lastSubject = subject;
+    if (!remixInstr) lastSubject = subject; aiShown = true;
     status(r.truncated ? `Done, with ${count} brushstrokes (a few final details were cut short).` : `Done! ${count} brushstrokes. Save it, or change something below.`); arpeggio(); sparkle(W/2,W/2,24);
   } catch(e){ const code=e && e.code;
     if (code==='cancelled') status(count ? `Stopped with ${count} brushstrokes.` : 'Stopped.');
@@ -868,14 +875,29 @@ async function paint(remixInstr){
   } finally { busy(false); }
 }
 $('#paintBtn').onclick=()=>paint(null);
+// quick painter: paints at once on every change
+let variant=0, typeT=null;
+function quickPaint(){ setupCanvas(); aiShown=false; const r=instantPaint($('#cPrompt').value, variant); const i=r.svg.indexOf('</defs>');
+  parseClean(r.svg.slice(0,i+7)).forEach((n)=>{ [...n.childNodes].forEach((c)=>csvg.querySelector('#artDefs').appendChild(c)); });
+  parseClean(r.svg.slice(i+7)).forEach((n)=>csvg.querySelector('#art').appendChild(n));
+  lastSubject=$('#cPrompt').value.trim(); if (state.wall) setWall(true);
+  const U=r.understood; const what = r.used.length ? r.used.join(' · ') : 'a calm landscape';
+  let msg = `Painted: ${what}, ${U.time}${U.water?', water':''}${U.mountains?', mountains':''}${U.desert?', desert':''}.`;
+  if (U.unknown.length) msg += ` I can't quick-paint “${U.unknown.slice(0,3).join(', ')}” yet.`;
+  msg += sampleFn ? ' For more detail, or anything else you imagine, press ✨ Paint with AI.' : (aiNote ? ' '+aiNote : '');
+  status(msg); }
+$('#cPrompt').addEventListener('input',()=>{ clearTimeout(typeT); typeT=setTimeout(()=>{ variant=0; quickPaint(); },450); });
+$('#variantBtn').onclick=()=>{ variant++; quickPaint(); sparkle(W/2,W/2,14); chime(700,.3); };
 $('#stopBtn').onclick=()=>{ if (ctl) ctl.abort(); };
 $('#ideaRow').innerHTML = IDEAS.map((t)=>`<button class="chip" data-t="${t.replace(/^\S+\s/,'')}">${t}</button>`).join('');
-$('#ideaRow').onclick=(e)=>{ const b=e.target.closest('.chip'); if(!b) return; $('#cPrompt').value=b.dataset.t; $('#cPrompt').focus(); };
-chips($('#cstyleRow'), [['watercolour','💧 Watercolour'],['oil','🖼️ Oil painting'],['madhubani','🐟 Madhubani'],['warli','🔺 Warli'],['miniature','🏯 Miniature'],['gond','🐘 Gond']], 'cstyle', applyFx);
-chips($('#aspectRow'), [['landscape','Landscape 4:3'],['portrait','Portrait 3:4'],['square','Square'],['wide','Wide 16:9']], 'caspect', ()=>{ toast('The next painting will use this frame.'); });
-$('#remixRow').innerHTML = REMIX.map(([l,t])=>`<button class="chip" data-t="${t}">${l}</button>`).join('');
-$('#remixRow').onclick=(e)=>{ const b=e.target.closest('.chip'); if(!b || b.disabled) return; paint(b.dataset.t); };
-$('#remixGo').onclick=()=>{ const t=$('#remixText').value.trim(); if (!t){ $('#remixText').focus(); return; } paint(t); };
+$('#ideaRow').onclick=(e)=>{ const b=e.target.closest('.chip'); if(!b) return; $('#cPrompt').value=b.dataset.t; variant=0; quickPaint(); sparkle(W/2,W/2,16); chime(660,.3); };
+chips($('#cstyleRow'), [['watercolour','💧 Watercolour'],['oil','🖼️ Oil painting'],['madhubani','🐟 Madhubani'],['warli','🔺 Warli'],['miniature','🏯 Miniature'],['gond','🐘 Gond']], 'cstyle', ()=>{ if (aiShown) { applyFx(); toast('Style changed. Press ✨ Paint with AI to repaint in this style, or 🎲 for a quick version.'); } else quickPaint(); });
+chips($('#aspectRow'), [['landscape','Landscape 4:3'],['portrait','Portrait 3:4'],['square','Square'],['wide','Wide 16:9']], 'caspect', ()=>{ quickPaint(); });
+$('#remixRow').innerHTML = REMIX.map(([l,t,q])=>`<button class="chip" data-t="${t}" data-q="${q}">${l}</button>`).join('');
+// after an AI painting, changes are repainted by AI; otherwise the words are added and the quick painter repaints at once
+function addWords(q){ const box=$('#cPrompt'); const cur=box.value.replace(/\b(at night|at sunset|at sunrise|in the monsoon rain|in the snow)\b/gi,'').replace(/\s+/g,' ').trim(); box.value = `${cur} ${q}`.trim(); variant=0; quickPaint(); }
+$('#remixRow').onclick=(e)=>{ const b=e.target.closest('.chip'); if(!b || b.disabled) return; if (aiShown && sampleFn) paint(b.dataset.t); else addWords(b.dataset.q); };
+$('#remixGo').onclick=()=>{ const t=$('#remixText').value.trim(); if (!t){ $('#remixText').focus(); return; } if (aiShown && sampleFn) paint(t); else addWords(t); $('#remixText').value=''; };
 // sketch first
 const sk=cx.sketch; let skLast=null;
 function blankSketch(){ sk.fillStyle='#ffffff'; sk.fillRect(0,0,W,W); sk.fillStyle='#9a8fbf'; sk.font=`600 ${Math.round(W/34)}px system-ui`; sk.textAlign='center'; sk.fillText('Sketch roughly what you want, then press Paint it',W/2,W*.06); }
@@ -903,6 +925,238 @@ function showExample(){ setupCanvas(); const [w,h]=SIZES[state.caspect]; const o
   const im=document.createElementNS(SVGNS,'image'); im.setAttribute('href',o.toDataURL('image/jpeg',.9)); im.setAttribute('width',w); im.setAttribute('height',h); im.setAttribute('preserveAspectRatio','xMidYMid slice'); csvg.querySelector('#art').appendChild(im); }
 
 // =====================================================================================
+// INSTANT PAINTER: reads what you typed and paints it at once, in the chosen art style
+// =====================================================================================
+const KEYS = {
+  buddha:/buddh|meditat|monk|zen|bodhisatt|peace/, tree:/tree|bodhi|banyan|peepal|forest|jungle|woods/, temple:/temple|mandir|shiva|shrine|pagoda|stupa|monaster/,
+  ghats:/ghat|varanasi|banaras|benaras|kashi|ganga|ganges|aarti/, boat:/boat|houseboat|fisherm|sail|shikara|kerala|backwater/, lotus:/lotus|kamal|lily|pond/,
+  peacock:/peacock|peahen|mor\b/, elephant:/elephant|haathi|hathi|gaja/, fort:/fort|palace|castle|rajasthan|jaipur|jodhpur|mahal/, camel:/camel|desert|thar|dune/,
+  kite:/kite|patang|sankranti|uttarayan|rooftop/, diya:/diya|diwali|deepavali|lamp|candle|festival|aarti/, bird:/bird|parrot|pigeon|crane|swan|duck|flock/,
+  people:/girl|boy|woman|women|man\b|men\b|mother|father|child|children|kid|grand|people|family|dancer|farmer|lady|couple/, palm:/palm|coconut|kerala|beach|goa|island|tropical/,
+  village:/village|hut|farm|field|rural|gaon/, mandala:/mandala|rangoli|kolam|pattern/, deer:/deer|fawn/, cow:/\bcow|cattle/, fish:/fish|matsya/,
+};
+const TIMES = [['night',/night|moon|star|diwali|deepavali|midnight|evening sky/],['sunset',/sunset|dusk|evening|golden hour|twilight/],['dawn',/sunrise|dawn|morning|early/],['monsoon',/rain|monsoon|storm|cloudy/],['snow',/snow|winter|himalaya|ice|frost/],['day',/day|noon|bright|sunny|summer/]];
+const LABEL = { buddha:'Buddha', tree:'tree', temple:'temple', ghats:'ghats', boat:'boats', lotus:'lotus', peacock:'peacock', elephant:'elephant', fort:'fort', camel:'camels', kite:'kites', diya:'diyas', bird:'birds', people:'people', palm:'palms', village:'village', mandala:'mandala', deer:'deer', cow:'cow', fish:'fish' };
+function hashStr(s){ let h=2166136261; for (const ch of s) { h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; }
+function understand(text){
+  const t=` ${text.toLowerCase()} `; const subj=Object.keys(KEYS).filter((k)=>KEYS[k].test(t));
+  let time=(TIMES.find(([,re])=>re.test(t))||[])[0];
+  const water=/river|ghat|ganga|ganges|lake|pond|backwater|sea|ocean|beach|boat|houseboat|lotus|kerala|waterfall|stream|shikara|island/.test(t);
+  const mountains=/mountain|himalaya|hill|valley|snow|ladakh|kashmir|everest|peak/.test(t);
+  const desert=/desert|thar|dune|camel|sand/.test(t);
+  if (!time) time = subj.includes('diya') ? 'night' : subj.includes('buddha') ? 'dawn' : subj.includes('fort')||desert ? 'sunset' : subj.includes('kite') ? 'day' : subj.includes('ghats') ? 'dawn' : mountains ? 'day' : 'sunset';
+  const words=t.replace(/[^a-z ]/g,' ').split(/\s+/).filter((w)=>w.length>3 && !/with|and|the|under|over|near|from|into|painting|paint|picture|scene|beautiful|happy|big|small|little|lots|many|some|very|their|they|this|that|evening|morning|night|sunrise|sunset|india|indian|style/.test(w));
+  const known=words.filter((w)=>Object.values(KEYS).some((re)=>re.test(` ${w} `)) || /river|lake|sea|ocean|beach|mountain|hill|valley|snow|desert|sand|rain|moon|star|sky|cloud|water|flower|grass|light/.test(w));
+  const filler=/ing$|ed$|ly$|^(monsoon|garden|festival|calm|golden|hour|light|bright|colourful|colorful|lots|full|over|under|around|holy|sacred|together|while|scene|view)$/;
+  return { subj, time, water, mountains, desert, unknown: words.filter((w)=>!known.includes(w) && !filler.test(w)) };
+}
+// colours: one palette per time of day for painterly styles, one per folk style
+const TIMEPAL = {
+  dawn:{ sky:['#9fc9ef','#ffd8c2','#ffe9b8'], sun:'#fff3c4', glow:'#ffcf8a', far:'#b8a9d9', mid:'#8c7fbf', land:['#9ccf7a','#5f9a4c'], water:['#bfe3f2','#6aa9c9'], light:'#fff6dc' },
+  sunset:{ sky:['#2b1055','#c8476b','#f6a04d'], sun:'#ffe08a', glow:'#f7a541', far:'#8d4a8f', mid:'#5d2c6f', land:['#5b3a5e','#2e1f3a'], water:['#f2a65a','#4a2463'], light:'#ffd29a' },
+  day:{ sky:['#4fa3e0','#9fd3f5','#e3f4ff'], sun:'#fffbe0', glow:'#fff0a8', far:'#9cb7d4', mid:'#6e93b8', land:['#8fcf6a','#3f8f3c'], water:['#7cc6e8','#2f7fae'], light:'#ffffff' },
+  night:{ sky:['#070b26','#1c1250','#3a2470'], sun:'#fffbe8', glow:'#9fb4ff', far:'#2c2560', mid:'#1d1846', land:['#1e2b3f','#0d1422'], water:['#2a3570','#0c1030'], light:'#ffe08a' },
+  monsoon:{ sky:['#4a5568','#7d8a9b','#b9c3cf'], sun:'#e6ecf2', glow:'#d4dde6', far:'#6b7a8f', mid:'#4d5d72', land:['#4f8a5b','#2c5a3a'], water:['#7d93a8','#3c5269'], light:'#eef3f7' },
+  snow:{ sky:['#8fbbe8','#cfe5f7','#f4f9ff'], sun:'#fffdf2', glow:'#fff4c9', far:'#b9c9de', mid:'#8aa0bd', land:['#f4f8fc','#d5e1ee'], water:['#a7cbe3','#5d8db3'], light:'#ffffff' },
+};
+const FOLK = {
+  madhubani:{ bg:'#f6e7c1', sky:'#f6e7c1', c:['#d7263d','#f7c531','#3ba55c','#1e50a2','#ec4e9c','#f28c1e','#5d3a1a'], line:'#1b1b1b', sw:3, border:'madhubani' },
+  warli:{ bg:'#9c4a2a', sky:'#9c4a2a', c:['#f3e9d2'], line:'#f3e9d2', sw:2.6, warli:true },
+  gond:{ bg:'#f7f0e1', sky:'#f7f0e1', c:['#e63946','#f4a261','#2a9d8f','#264653','#e9c46a','#8338ec','#06a77d'], line:'#1b1b1b', sw:1.8, dots:true },
+  miniature:{ bg:'#f3e2b3', sky:'#7fb3d5', c:['#9b1d20','#0b6e4f','#1f4e9a','#e8a33d','#5e2750','#c97b2b','#2e2a26'], line:'#3b2a1a', sw:1.2, border:'miniature' },
+};
+function instantPaint(text, variant){
+  const [w,h]=SIZES[state.caspect]; const style=state.cstyle; const folk=FOLK[style]; const U=understand(text||''); const R=rng(hashStr((text||'')+style)+variant*7919+1);
+  const pal=TIMEPAL[U.time]; const defs=[]; const out=[]; let gid=0;
+  const rnd=(a,b)=>a+R()*(b-a); const pick=(a)=>a[Math.floor(R()*a.length)];
+  const lin=(stops,vert=true)=>{ if (folk) return stops[Math.floor(stops.length/2)]; const id=`g${++gid}`; defs.push(`<linearGradient id="${id}" x1="0" y1="0" x2="${vert?0:1}" y2="${vert?1:0}">${stops.map((c,i)=>`<stop offset="${(i/(stops.length-1)).toFixed(2)}" stop-color="${c}"/>`).join('')}</linearGradient>`); return `url(#${id})`; };
+  const rad=(c1,c2,o1=1,o2=0)=>{ if (folk) return c1; const id=`g${++gid}`; defs.push(`<radialGradient id="${id}"><stop offset="0" stop-color="${c1}" stop-opacity="${o1}"/><stop offset="1" stop-color="${c2}" stop-opacity="${o2}"/></radialGradient>`); return `url(#${id})`; };
+  let fi=0; const fc=(painterly)=> folk ? folk.c[(fi++)%folk.c.length] : painterly;   // folk styles: bright flat colours in turn
+  const attrs=(o)=>Object.entries(o).filter(([,v])=>v!=null).map(([k,v])=>`${k}="${typeof v==='number'?+v.toFixed(1):v}"`).join(' ');
+  // add(): one shape; role 'bg' = never outlined, 'solid' = stays filled in Warli, 'body' = gets Gond dots
+  const add=(tag,o,role='')=>{ const a={...o};
+    if (folk && role!=='bg'){ if (folk.warli){ if (role==='solid'){ a.fill=folk.c[0]; a.stroke=null; } else { a.fill='none'; a.stroke=folk.line; a['stroke-width']=a['stroke-width']||folk.sw; } a.opacity=null; a['fill-opacity']=null; }
+      else if (a.stroke==null && a.fill!=='none'){ a.stroke=folk.line; a['stroke-width']=folk.sw; } }
+    out.push(`<${tag} ${attrs(a)}/>`);
+    if (folk && folk.dots && role==='body') out.push(`<${tag} ${attrs({...a,fill:'url(#gdots)',stroke:null,'stroke-width':null})}/>`); };
+  const line=(d,color,sw,op=1,role='')=>add('path',{d,fill:'none',stroke:color,'stroke-width':sw,'stroke-linecap':'round',opacity:op},role);
+  if (folk && folk.dots) defs.push('<pattern id="gdots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.6" fill="#ffffff" opacity=".85"/><circle cx="10" cy="10" r="1.6" fill="#1b1b1b" opacity=".55"/></pattern>');
+  const hy = h*(U.subj.includes('kite') ? .74 : U.water||U.desert ? .6 : .64);
+  // ---------- sky ----------
+  add('rect',{x:0,y:0,width:w,height:h,fill: folk ? folk.bg : lin(pal.sky)},'bg');
+  if (folk && style==='miniature') add('rect',{x:0,y:0,width:w,height:hy,fill:folk.sky},'bg');
+  if (U.time==='night' && !folk) for (let i=0;i<90;i++) add('circle',{cx:rnd(0,w),cy:rnd(0,hy*.85),r:rnd(.6,2.2),fill:'#fffbe8',opacity:rnd(.4,1)},'bg');
+  if (U.time==='night' && folk) for (let i=0;i<24;i++) add('circle',{cx:rnd(0,w),cy:rnd(0,hy*.8),r:rnd(2,4),fill:folk.c[0]},'solid');
+  // ---------- sun / moon ----------
+  const sp = { dawn:[.74,hy-h*.08,.07], sunset:[.5,hy-h*.02,.085], day:[.82,h*.16,.055], night:[.8,h*.15,.05], monsoon:[.7,h*.18,.05], snow:[.78,h*.15,.05] }[U.time];
+  const sx=w*sp[0], sy=sp[1], sr=h*sp[2];
+  if (U.time!=='monsoon'){
+    if (!folk) add('circle',{cx:sx,cy:sy,r:sr*4,fill:rad(pal.glow,pal.glow,.55,0)},'bg');
+    add('circle',{cx:sx,cy:sy,r:sr,fill: folk ? (folk.warli?folk.c[0]:'#f28c1e') : pal.sun},'solid');
+    if (folk && U.time!=='night') for (let i=0;i<12;i++){ const a=i*Math.PI/6; add('path',{d:`M${sx+Math.cos(a-.12)*sr*1.15} ${sy+Math.sin(a-.12)*sr*1.15}L${sx+Math.cos(a)*sr*1.6} ${sy+Math.sin(a)*sr*1.6}L${sx+Math.cos(a+.12)*sr*1.15} ${sy+Math.sin(a+.12)*sr*1.15}Z`,fill: folk.warli?folk.c[0]:'#f7c531'},'solid'); }
+    if (U.time==='night' && !folk) add('circle',{cx:sx+sr*.35,cy:sy-sr*.2,r:sr*.9,fill:pal.sky[0],opacity:.0},'bg');
+  } else if (!folk) for (let i=0;i<6;i++){ const cx0=rnd(0,w), cy0=rnd(h*.05,h*.3); for (let j=0;j<5;j++) add('ellipse',{cx:cx0+rnd(-90,90),cy:cy0+rnd(-20,20),rx:rnd(60,130),ry:rnd(25,45),fill:pick(['#6b7686','#8794a6','#5a6577']),opacity:.75},'bg'); }
+  // ---------- far land ----------
+  const ridge=(base,peakH,n,fill,snow,role)=>{ let d=`M0 ${base}`; const pk=[]; for (let i=0;i<=n;i++){ const x=i*w/n, y=base-peakH*(.45+R()*.55)*(i%2?1:.55); d+=` L${x.toFixed(1)} ${y.toFixed(1)}`; pk.push([x,y]); } add('path',{d:d+` L${w} ${base} Z`,fill},role||'body');
+    if (snow) pk.forEach(([x,y],i)=>{ if (i%2) add('path',{d:`M${x-w/n*.22} ${y+peakH*.18}L${x} ${y}L${x+w/n*.22} ${y+peakH*.18}L${x+w/n*.08} ${y+peakH*.12}L${x} ${y+peakH*.2}L${x-w/n*.1} ${y+peakH*.11}Z`,fill:'#fbfdff'},'solid'); }); };
+  if (U.mountains || (!U.water && !U.desert && !U.subj.includes('kite'))) { ridge(hy, h*(U.mountains?.34:.16), U.mountains?7:5, fc(lin([pal.far,pal.mid])), U.mountains && (U.time==='snow'||U.time==='day'||U.time==='dawn')); ridge(hy, h*(U.mountains?.2:.09), U.mountains?9:6, fc(lin([pal.mid,pal.land[1]]))); }
+  if (U.desert) for (let i=0;i<3;i++){ const y=hy+i*h*.06; add('path',{d:`M0 ${y} Q${w*.25} ${y-h*.07} ${w*.5} ${y} T${w} ${y} L${w} ${h} L0 ${h}Z`,fill:fc(lin(['#f2c98a','#c98a4b']))},'body'); }
+  // ---------- water or land ----------
+  if (U.water){ add('rect',{x:0,y:hy,width:w,height:h-hy,fill:fc(lin(pal.water))},'body');
+    if (!folk){ for (let i=0;i<70;i++){ const y=rnd(hy+4,h); const x=rnd(0,w); line(`M${x} ${y} h${rnd(20,90)}`,pal.light,rnd(1,2.5),rnd(.15,.4)); }
+      if (U.time!=='monsoon') for (let i=0;i<10;i++) add('ellipse',{cx:sx+rnd(-12,12),cy:hy+(i+1)*(h-hy)/12,rx:sr*rnd(.4,1),ry:3,fill:pal.sun,opacity:.5},'bg'); }
+    else for (let i=0;i<10;i++){ const y=hy+(i+1)*(h-hy)/11; line(`M${rnd(0,w*.4)} ${y} q30 -10 60 0 t60 0 t60 0`,folk.warli?folk.c[0]:'#1e50a2',2,1,'solid'); } }
+  else if (!U.desert) add('path',{d:`M0 ${hy} Q${w*.3} ${hy-h*.04} ${w*.6} ${hy+h*.01} T${w} ${hy} L${w} ${h} L0 ${h}Z`,fill:fc(lin(pal.land))},'body');
+  // ---------- elements ----------
+  const skin='#c68a5a', wood='#5b3a29', stone=['#e8c39a','#c9935f'];
+  function temple(cx,base,s){ add('rect',{x:cx-s*.24,y:base-s*.2,width:s*.48,height:s*.2,fill:fc(lin(stone))},'body');
+    add('path',{d:`M${cx-s*.2} ${base-s*.2} C${cx-s*.2} ${base-s*.5} ${cx-s*.08} ${base-s*.72} ${cx} ${base-s*.8} C${cx+s*.08} ${base-s*.72} ${cx+s*.2} ${base-s*.5} ${cx+s*.2} ${base-s*.2}Z`,fill:fc(lin([stone[0],'#b0703f']))},'body');
+    for (let k=1;k<4;k++){ const y=base-s*.2-k*s*.14; line(`M${cx-s*(.2-k*.04)} ${y} Q${cx} ${y-s*.03} ${cx+s*(.2-k*.04)} ${y}`, folk?folk.line:'#8a5a33', 2); }
+    add('ellipse',{cx,cy:base-s*.81,rx:s*.06,ry:s*.025,fill:fc('#d4a72c')}); add('path',{d:`M${cx} ${base-s*.84} L${cx} ${base-s*.98}`,stroke:folk?folk.line:wood,'stroke-width':2.5,fill:'none'});
+    add('path',{d:`M${cx} ${base-s*.98} L${cx+s*.12} ${base-s*.94} L${cx} ${base-s*.9}Z`,fill:fc('#f28c1e')},'solid');
+    add('path',{d:`M${cx-s*.06} ${base} V${base-s*.1} Q${cx} ${base-s*.17} ${cx+s*.06} ${base-s*.1} V${base}Z`,fill:fc('#3b2418')},'solid'); }
+  function ghats(){ const top=hy-h*.2; for (let x=-20;x<w;){ const bw=rnd(w*.05,w*.11), bh=rnd(h*.08,h*.17); add('rect',{x,y:hy-h*.05-bh,width:bw,height:bh,fill:fc(lin([pick(['#f0c890','#e7a86b','#d98b5f','#f3d6a8']),'#b9784a']))},'body');
+      for (let r=0;r<3;r++) add('rect',{x:x+bw*.2+r*bw*.22,y:hy-h*.05-bh+bh*.25,width:bw*.12,height:bh*.18,fill:fc('#6b3a22'),opacity:folk?null:.6},'solid');
+      if (R()<.35) temple(x+bw/2, hy-h*.05-bh, h*.16); x+=bw-2; }
+    for (let k=0;k<5;k++) add('rect',{x:0,y:hy-h*.05+k*h*.01,width:w,height:h*.01,fill:fc(k%2?'#c98f63':'#e9c49a')},'body');
+    for (let i=0;i<6;i++){ const ux=rnd(w*.05,w*.95), uy=hy-h*.035; add('path',{d:`M${ux-18} ${uy} Q${ux} ${uy-24} ${ux+18} ${uy}Z`,fill:fc(pick(['#d7263d','#f7c531','#0e9aa7']))}); line(`M${ux} ${uy} V${uy+16}`,folk?folk.line:wood,2); } }
+  function boat(x,y,s,canopy){ add('path',{d:`M${x-s} ${y} Q${x} ${y+s*.42} ${x+s} ${y} Q${x} ${y+s*.16} ${x-s} ${y}Z`,fill:fc(lin(['#7a4a2a','#3d2416']))},'body');
+    if (!folk) add('path',{d:`M${x-s} ${y+s*.3} Q${x} ${y-s*.05} ${x+s} ${y+s*.3}`,fill:'none',stroke:'#3d2416','stroke-width':3,opacity:.25});
+    if (canopy) add('path',{d:`M${x-s*.55} ${y+s*.05} V${y-s*.32} Q${x} ${y-s*.55} ${x+s*.55} ${y-s*.32} V${y+s*.05}Z`,fill:fc(lin(['#c9a26b','#8a6a3d']))},'body');
+    else { add('circle',{cx:x+s*.35,cy:y-s*.38,r:s*.08,fill:fc(skin)},'solid'); add('path',{d:`M${x+s*.28} ${y+s*.02} L${x+s*.31} ${y-s*.3} L${x+s*.42} ${y-s*.3} L${x+s*.44} ${y+s*.02}Z`,fill:fc(pick(['#f7f3e8','#f28c1e','#d7263d']))}); line(`M${x+s*.4} ${y-s*.2} L${x+s*.95} ${y+s*.35}`,folk?folk.line:wood,3); } }
+  function lotus(x,y,s,pad=true){ if (pad){ add('ellipse',{cx:x-s*.9,cy:y+s*.18,rx:s*.7,ry:s*.18,fill:fc(lin(['#5fae5a','#2f6f3a']))},'body'); add('ellipse',{cx:x+s*.85,cy:y+s*.2,rx:s*.6,ry:s*.15,fill:fc(lin(['#5fae5a','#2f6f3a']))},'body'); }
+    const P=(dx,tilt,len,wid,c)=>{ const tx=x+dx+Math.sin(tilt)*len, ty=y-Math.cos(tilt)*len; add('path',{d:`M${x+dx} ${y} C${x+dx-wid} ${y-len*.45} ${tx-wid*.4} ${ty+len*.2} ${tx} ${ty} C${tx+wid*.4} ${ty+len*.2} ${x+dx+wid} ${y-len*.45} ${x+dx} ${y}Z`,fill:fc(lin([c,'#f8d7e6']))},'body'); };
+    P(-s*.1,-1.1,s*.6,s*.25,'#d94f8a'); P(s*.1,1.1,s*.6,s*.25,'#d94f8a'); P(0,-.55,s*.8,s*.28,'#ec6fa6'); P(0,.55,s*.8,s*.28,'#ec6fa6'); P(0,0,s*.95,s*.3,'#f49ac1'); }
+  function tree(cx,base,s,kind){ add('path',{d:`M${cx-s*.07} ${base} C${cx-s*.05} ${base-s*.3} ${cx-s*.04} ${base-s*.45} ${cx-s*.12} ${base-s*.6} L${cx+s*.12} ${base-s*.6} C${cx+s*.05} ${base-s*.45} ${cx+s*.05} ${base-s*.3} ${cx+s*.08} ${base}Z`,fill:fc(lin(['#6b4423','#3e2716']))},'body');
+    line(`M${cx-s*.03} ${base-s*.5} Q${cx-s*.25} ${base-s*.62} ${cx-s*.4} ${base-s*.6}`,folk?folk.line:'#4a2f1b',s*.03); line(`M${cx+s*.03} ${base-s*.5} Q${cx+s*.25} ${base-s*.64} ${cx+s*.42} ${base-s*.62}`,folk?folk.line:'#4a2f1b',s*.03);
+    const greens = U.time==='night' ? ['#1f4a3a','#163829','#2a5b47'] : U.time==='sunset' ? ['#4f6b3a','#3a5230','#6b7f3e'] : ['#4f9a4a','#3a7f3c','#6bb35a','#2f6b33'];
+    for (let i=0;i<16;i++){ const a=rnd(Math.PI,2*Math.PI), rr=rnd(0,s*.42); add('circle',{cx:cx+Math.cos(a)*rr*1.3,cy:base-s*.72+Math.sin(a)*rr*.65,r:rnd(s*.12,s*.2),fill:fc(rad(pick(greens),pick(greens),1,1)),opacity:folk?null:.92},'body'); }
+    if (kind==='bodhi' || folk) for (let i=0;i<26;i++){ const lx=cx+rnd(-s*.55,s*.55), ly=base-s*.72+rnd(-s*.35,s*.2), ls=s*.035; add('path',{d:`M${lx} ${ly+ls} C${lx-ls*1.4} ${ly} ${lx-ls} ${ly-ls*1.2} ${lx} ${ly-ls*.5} C${lx+ls} ${ly-ls*1.2} ${lx+ls*1.4} ${ly} ${lx} ${ly+ls}Z`,fill:fc(pick(['#7cc46a','#a3d977','#5fae5a']))}); }
+    if (kind==='banyan') for (let i=0;i<10;i++){ const rx=cx+rnd(-s*.5,s*.5); line(`M${rx} ${base-s*.55} Q${rx+rnd(-8,8)} ${base-s*.3} ${rx+rnd(-6,6)} ${base}`,folk?folk.line:'#5a3b22',2,.8); } }
+  function buddha(cx,base,s){ const hc=base-s*.78;
+    add('circle',{cx,cy:hc,r:s*.34,fill: folk ? fc('#f7c531') : rad('#fff3b0','#f7c531',.95,.0)}, folk&&folk.warli ? '' : 'solid'); if (!folk) add('circle',{cx,cy:hc,r:s*.24,fill:'none',stroke:'#e8b84a','stroke-width':3,opacity:.7});
+    for (let i=-3;i<=3;i++){ const px=cx+i*s*.15; add('path',{d:`M${px-s*.09} ${base+s*.02} Q${px} ${base-s*.12} ${px+s*.09} ${base+s*.02} Q${px} ${base+s*.08} ${px-s*.09} ${base+s*.02}Z`,fill:fc(lin(['#f49ac1','#d94f8a']))},'body'); }
+    const robe = U.time==='night' ? ['#d98a3a','#9c4a1a'] : ['#f28c1e','#b8461a'];
+    add('ellipse',{cx,cy:base-s*.07,rx:s*.5,ry:s*.11,fill:fc(lin(robe))},'body');
+    add('path',{d:`M${cx-s*.44} ${base-s*.06} C${cx-s*.46} ${base-s*.36} ${cx-s*.3} ${base-s*.6} ${cx} ${base-s*.63} C${cx+s*.3} ${base-s*.6} ${cx+s*.46} ${base-s*.36} ${cx+s*.44} ${base-s*.06}Z`,fill:fc(lin(robe))},'body');
+    line(`M${cx-s*.22} ${base-s*.58} Q${cx+s*.05} ${base-s*.35} ${cx+s*.3} ${base-s*.12}`, folk?folk.line:'#8a3412', s*.018, .8);
+    line(`M${cx+s*.12} ${base-s*.6} Q${cx+s*.3} ${base-s*.45} ${cx+s*.38} ${base-s*.2}`, folk?folk.line:'#8a3412', s*.012, .6);
+    add('ellipse',{cx,cy:base-s*.17,rx:s*.13,ry:s*.05,fill:fc('#d9a37a')},'solid');
+    add('rect',{x:cx-s*.045,y:hc+s*.1,width:s*.09,height:s*.08,fill:fc('#d9a37a')},'solid');
+    add('ellipse',{cx:cx-s*.125,cy:hc+s*.02,rx:s*.028,ry:s*.075,fill:fc('#d9a37a')},'solid'); add('ellipse',{cx:cx+s*.125,cy:hc+s*.02,rx:s*.028,ry:s*.075,fill:fc('#d9a37a')},'solid');
+    add('ellipse',{cx,cy:hc,rx:s*.115,ry:s*.13,fill: folk&&!folk.warli ? '#e0aa80' : fc(lin(['#ecc39a','#c9905f']))},'solid');
+    add('path',{d:`M${cx-s*.118} ${hc-s*.02} Q${cx-s*.12} ${hc-s*.15} ${cx} ${hc-s*.15} Q${cx+s*.12} ${hc-s*.15} ${cx+s*.118} ${hc-s*.02} Q${cx} ${hc-s*.09} ${cx-s*.118} ${hc-s*.02}Z`,fill:fc('#2b2235')},'solid');
+    add('circle',{cx,cy:hc-s*.17,r:s*.05,fill:fc('#2b2235')},'solid');
+    const ink = folk&&folk.warli ? folk.c[0] : '#4a2a1a';
+    out.push(`<path d="M${cx-s*.07} ${hc+s*.005} q${s*.03} ${s*.02} ${s*.055} 0 M${cx+s*.015} ${hc+s*.005} q${s*.03} ${s*.02} ${s*.055} 0" fill="none" stroke="${ink}" stroke-width="${(s*.008).toFixed(1)}" stroke-linecap="round"/>`);
+    out.push(`<path d="M${cx-s*.025} ${hc+s*.07} q${s*.025} ${s*.015} ${s*.05} 0" fill="none" stroke="${ink}" stroke-width="${(s*.007).toFixed(1)}" stroke-linecap="round"/>`);
+    out.push(`<circle cx="${cx}" cy="${(hc-s*.04).toFixed(1)}" r="${(s*.009).toFixed(1)}" fill="#c0392b"/>`); }
+  function peacock(cx,base,s){ for (let k=0;k<17;k++){ const a=Math.PI*(1.08+k*.84/16), ex=cx+Math.cos(a)*s*1.05, ey=base-s*.42+Math.sin(a)*s*.95;
+      add('path',{d:`M${cx} ${base-s*.42} Q${(cx+ex)/2+rnd(-6,6)} ${(base-s*.42+ey)/2} ${ex} ${ey}`,fill:'none',stroke:fc('#3ba55c'),'stroke-width':s*.025,'stroke-linecap':'round'});
+      add('ellipse',{cx:ex,cy:ey,rx:s*.085,ry:s*.12,fill:fc('#2ec4b6'),transform:`rotate(${(a*180/Math.PI+90).toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)})`},'body');
+      add('ellipse',{cx:ex,cy:ey,rx:s*.05,ry:s*.07,fill:fc('#1e50a2'),transform:`rotate(${(a*180/Math.PI+90).toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)})`},'solid');
+      add('circle',{cx:ex,cy:ey,r:s*.022,fill:fc('#f7c531')},'solid'); }
+    add('path',{d:`M${cx-s*.18} ${base-s*.25} Q${cx-s*.2} ${base-s*.55} ${cx-s*.03} ${base-s*.72} Q${cx+s*.04} ${base-s*.6} ${cx+s*.02} ${base-s*.45} Q${cx+s*.22} ${base-s*.35} ${cx+s*.15} ${base-s*.2} Q${cx} ${base-s*.12} ${cx-s*.18} ${base-s*.25}Z`,fill:fc(lin(['#2b6fd6','#123b8a']))},'body');
+    add('circle',{cx:cx-s*.02,cy:base-s*.76,r:s*.06,fill:fc('#2b6fd6')},'solid'); add('path',{d:`M${cx-s*.08} ${base-s*.76} L${cx-s*.15} ${base-s*.74} L${cx-s*.08} ${base-s*.72}Z`,fill:fc('#e8a33d')},'solid');
+    for (let i=-1;i<=1;i++){ line(`M${cx-s*.02} ${base-s*.82} L${cx-s*.02+i*s*.05} ${base-s*.93}`,folk?folk.line:'#123b8a',2); add('circle',{cx:cx-s*.02+i*s*.05,cy:base-s*.94,r:s*.015,fill:fc('#2ec4b6')},'solid'); }
+    line(`M${cx-s*.03} ${base-s*.16} L${cx-s*.05} ${base}`, folk?folk.line:'#8a6a3d', 3); line(`M${cx+s*.05} ${base-s*.16} L${cx+s*.07} ${base}`, folk?folk.line:'#8a6a3d', 3); }
+  function elephant(cx,base,s,dir=1){ const X=(v)=>cx+dir*v;
+    add('ellipse',{cx:X(0),cy:base-s*.5,rx:s*.5,ry:s*.3,fill:fc(lin(['#8b8f9a','#5e626d']))},'body');
+    for (const lx of [-.35,-.12,.12,.32]) add('rect',{x:X(lx*s)-s*.06,y:base-s*.32,width:s*.12,height:s*.32,fill:fc(lin(['#7b7f8a','#545862']))},'body');
+    add('circle',{cx:X(s*.5),cy:base-s*.62,r:s*.22,fill:fc(lin(['#8b8f9a','#5e626d']))},'body');
+    add('path',{d:`M${X(s*.66)} ${base-s*.55} Q${X(s*.78)} ${base-s*.3} ${X(s*.7)} ${base-s*.08} Q${X(s*.64)} ${base-s*.02} ${X(s*.6)} ${base-s*.1} Q${X(s*.66)} ${base-s*.3} ${X(s*.55)} ${base-s*.48}Z`,fill:fc('#6e727d')},'body');
+    add('ellipse',{cx:X(s*.38),cy:base-s*.62,rx:s*.13,ry:s*.18,fill:fc('#9a7f8a')},'body');
+    add('path',{d:`M${X(s*.62)} ${base-s*.48} Q${X(s*.78)} ${base-s*.42} ${X(s*.8)} ${base-s*.5}`,fill:'none',stroke:'#fffbe8','stroke-width':s*.025,'stroke-linecap':'round'},'solid');
+    add('path',{d:`M${X(-s*.3)} ${base-s*.78} H${X(s*.25)} V${base-s*.45} Q${X(0)} ${base-s*.35} ${X(-s*.3)} ${base-s*.45}Z`,fill:fc(lin(['#d7263d','#9b1d20']))},'body');
+    for (let i=0;i<6;i++) add('circle',{cx:X(-s*.25+i*s*.1),cy:base-s*.46,r:s*.02,fill:fc('#f7c531')},'solid');
+    add('circle',{cx:X(s*.57),cy:base-s*.68,r:s*.018,fill:'#1b1b1b'},'solid'); }
+  function fort(cx,base,s){ add('path',{d:`M${cx-s*1.2} ${base} Q${cx} ${base-s*.35} ${cx+s*1.2} ${base}Z`,fill:fc(lin(['#c98a4b','#8a5a2b']))},'body');
+    const wy=base-s*.28; add('rect',{x:cx-s*.8,y:wy-s*.3,width:s*1.6,height:s*.3,fill:fc(lin(['#e8b878','#b9784a']))},'body');
+    for (let i=0;i<16;i++) add('rect',{x:cx-s*.8+i*s*.1,y:wy-s*.35,width:s*.06,height:s*.05,fill:fc('#d9a066')});
+    for (const tx of [-.8,-.3,.25,.75]){ add('rect',{x:cx+tx*s-s*.09,y:wy-s*.55,width:s*.18,height:s*.55,fill:fc(lin(['#efc48a','#c08050']))},'body'); add('path',{d:`M${cx+tx*s-s*.11} ${wy-s*.55} Q${cx+tx*s} ${wy-s*.75} ${cx+tx*s+s*.11} ${wy-s*.55}Z`,fill:fc('#f2d29a')});
+      add('path',{d:`M${cx+tx*s-s*.03} ${wy-s*.25} V${wy-s*.33} Q${cx+tx*s} ${wy-s*.38} ${cx+tx*s+s*.03} ${wy-s*.33} V${wy-s*.25}Z`,fill:fc('#5b3a29')},'solid'); }
+    add('path',{d:`M${cx-s*.08} ${wy} V${wy-s*.16} Q${cx} ${wy-s*.25} ${cx+s*.08} ${wy-s*.16} V${wy}Z`,fill:fc('#3b2418')},'solid'); }
+  function camel(x,base,s,dir=1){ const X=(v)=>x+dir*v; const c=fc(lin(['#d9a066','#a8743f']));
+    add('ellipse',{cx:X(0),cy:base-s*.55,rx:s*.35,ry:s*.16,fill:c},'body'); add('ellipse',{cx:X(-s*.02),cy:base-s*.7,rx:s*.16,ry:s*.13,fill:c},'body');
+    add('path',{d:`M${X(s*.28)} ${base-s*.6} Q${X(s*.45)} ${base-s*.65} ${X(s*.47)} ${base-s*.95} L${X(s*.55)} ${base-s*.95} Q${X(s*.52)} ${base-s*.6} ${X(s*.32)} ${base-s*.5}Z`,fill:c},'body');
+    add('ellipse',{cx:X(s*.6),cy:base-s*.95,rx:s*.1,ry:s*.05,fill:c},'body');
+    for (const lx of [-.25,-.12,.15,.27]) line(`M${X(lx*s)} ${base-s*.45} L${X(lx*s+s*.02)} ${base}`, folk?folk.line:'#8a5a2b', s*.04);
+    add('path',{d:`M${X(-s*.2)} ${base-s*.72} H${X(s*.18)} V${base-s*.6} H${X(-s*.2)}Z`,fill:fc('#d7263d')}); }
+  function person(x,base,s,kind){ const sari=fc(pick(['#d7263d','#f28c1e','#ec4e9c','#0e9aa7','#8e44ad','#f7c531']));
+    if (folk&&folk.warli){ add('circle',{cx:x,cy:base-s*.85,r:s*.08},'solid'); add('path',{d:`M${x-s*.16} ${base-s*.75} L${x+s*.16} ${base-s*.75} L${x} ${base-s*.45}Z`},'solid'); add('path',{d:`M${x-s*.14} ${base} L${x+s*.14} ${base} L${x} ${base-s*.45}Z`},'solid');
+      line(`M${x-s*.14} ${base-s*.7} L${x-s*.3} ${base-s*.5} M${x+s*.14} ${base-s*.7} L${x+s*.3} ${base-s*.85}`,folk.c[0],3,1,'solid'); return; }
+    add('path',{d:`M${x-s*.2} ${base} L${x-s*.1} ${base-s*.62} L${x+s*.1} ${base-s*.62} L${x+s*.2} ${base}Z`,fill:sari},'body');
+    add('path',{d:`M${x-s*.1} ${base-s*.62} Q${x+s*.25} ${base-s*.5} ${x+s*.18} ${base-s*.1}`,fill:'none',stroke:fc('#f7c531'),'stroke-width':s*.04});
+    add('circle',{cx:x,cy:base-s*.72,r:s*.09,fill:fc(skin)},'solid'); add('path',{d:`M${x-s*.09} ${base-s*.73} Q${x} ${base-s*.86} ${x+s*.09} ${base-s*.73} Q${x+s*.12} ${base-s*.6} ${x+s*.07} ${base-s*.55}`,fill:fc('#1b1b2f')},'solid');
+    line(`M${x-s*.1} ${base-s*.55} L${x-s*.22} ${base-s*.3}`, fc(skin), s*.035); }
+  function kites(){ for (let i=0;i<7;i++){ const kx=rnd(w*.08,w*.92), ky=rnd(h*.08,hy-h*.25), ks=rnd(h*.035,h*.06); const kc=fc(pick(['#d7263d','#f7c531','#ec4e9c','#0e9aa7','#f28c1e','#3ba55c']));
+      add('path',{d:`M${kx} ${ky-ks} L${kx+ks*.8} ${ky} L${kx} ${ky+ks*1.1} L${kx-ks*.8} ${ky}Z`,fill:kc},'body'); line(`M${kx} ${ky-ks} L${kx} ${ky+ks*1.1} M${kx-ks*.8} ${ky} L${kx+ks*.8} ${ky}`, folk?folk.line:'#5b3a29', 1.2, .7);
+      line(`M${kx} ${ky+ks*1.1} Q${kx+rnd(-60,60)} ${ky+ks*4} ${kx+rnd(-120,120)} ${hy+h*.05}`, folk?folk.line:'#5b3a29', 1, .6); }
+    for (let x=0;x<w;){ const bw=rnd(w*.08,w*.16), bh=rnd(h*.12,h*.24); add('rect',{x,y:h-bh,width:bw,height:bh,fill:fc(lin([pick(['#f3d6a8','#e7a86b','#f0c890','#d9b38c','#e9c6c0']),'#b9784a']))},'body');
+      add('rect',{x:x+bw*.1,y:h-bh-h*.03,width:bw*.8,height:h*.03,fill:fc('#c98f63')}); if (R()<.6) person(x+bw*.5,h-bh,h*.12);
+      for (let r=0;r<2;r++) add('rect',{x:x+bw*(.2+r*.4),y:h-bh+bh*.3,width:bw*.18,height:bh*.2,fill:fc('#5b3a29'),opacity:folk?null:.55},'solid'); x+=bw; } }
+  function diyas(y){ const n=Math.round(w/90); for (let i=0;i<n;i++){ const x=(i+.5)*w/n+rnd(-10,10), s=h*.022;
+      if (!folk) add('circle',{cx:x,cy:y-s*1.2,r:s*2.2,fill:rad('#ffd27a','#ffd27a',.6,0)},'bg');
+      add('path',{d:`M${x-s} ${y-s*.2} Q${x} ${y+s*.9} ${x+s} ${y-s*.2}Z`,fill:fc(lin(['#f28c1e','#8a3b0f']))},'body');
+      add('path',{d:`M${x} ${y-s*.3} Q${x-s*.35} ${y-s*.9} ${x} ${y-s*1.7} Q${x+s*.35} ${y-s*.9} ${x} ${y-s*.3}Z`,fill:fc('#ffe08a')},'solid'); } }
+  function birds(n){ for (let i=0;i<n;i++){ const bx=rnd(w*.1,w*.9), by=rnd(h*.08,hy*.55), bs=rnd(8,16); line(`M${bx-bs} ${by-bs*.3} Q${bx-bs*.4} ${by-bs*.6} ${bx} ${by} Q${bx+bs*.4} ${by-bs*.6} ${bx+bs} ${by-bs*.3}`, folk?(folk.warli?folk.c[0]:folk.line):'#2a1d3a', 2.2,1,'solid'); } }
+  function palm(x,base,s,lean){ line(`M${x} ${base} Q${x+lean*.4} ${base-s*.5} ${x+lean} ${base-s}`, fc('#7a5230'), s*.05);
+    for (let i=0;i<8;i++){ const a=-Math.PI/2+(i-3.5)*.42, ex=x+lean+Math.cos(a)*s*.45, ey=base-s+Math.sin(a)*s*.3+s*.12; add('path',{d:`M${x+lean} ${base-s} Q${(x+lean+ex)/2} ${ey-s*.12} ${ex} ${ey} Q${(x+lean+ex)/2} ${ey-s*.04} ${x+lean} ${base-s}Z`,fill:fc(lin(['#5fae5a','#2f6f3a']))},'body'); } }
+  function huts(n){ for (let i=0;i<n;i++){ const x=rnd(w*.05,w*.85), s=rnd(h*.09,h*.13), b=hy+rnd(h*.02,h*.08);
+      add('rect',{x,y:b-s*.5,width:s,height:s*.5,fill:fc(lin(['#e3b27e','#b9784a']))},'body'); add('path',{d:`M${x-s*.15} ${b-s*.5} L${x+s*.5} ${b-s} L${x+s*1.15} ${b-s*.5}Z`,fill:fc(lin(['#c9a24a','#8a6a2d']))},'body');
+      add('rect',{x:x+s*.4,y:b-s*.3,width:s*.2,height:s*.3,fill:fc('#4a2f1b')},'solid'); } }
+  function mandala(cx,cy,r){ for (let ring=3;ring>=1;ring--){ const n=ring*8, rr=r*ring/3; for (let i=0;i<n;i++){ const a=i*2*Math.PI/n, x1=cx+Math.cos(a)*rr*.45, y1=cy+Math.sin(a)*rr*.45, x2=cx+Math.cos(a)*rr, y2=cy+Math.sin(a)*rr;
+      const nx=-Math.sin(a)*rr*.12, ny=Math.cos(a)*rr*.12; add('path',{d:`M${x1} ${y1} Q${(x1+x2)/2+nx} ${(y1+y2)/2+ny} ${x2} ${y2} Q${(x1+x2)/2-nx} ${(y1+y2)/2-ny} ${x1} ${y1}Z`,fill:fc(['#f7c531','#ec4e9c','#0e9aa7'][ring-1])},'body'); } }
+    add('circle',{cx,cy,r:r*.15,fill:fc('#d7263d')},'solid'); }
+  function deer(x,base,s){ const c=fc(lin(['#c98a4b','#8a5a2b'])); add('ellipse',{cx:x,cy:base-s*.55,rx:s*.3,ry:s*.13,fill:c},'body'); add('path',{d:`M${x+s*.22} ${base-s*.6} L${x+s*.32} ${base-s*.9} L${x+s*.4} ${base-s*.88} L${x+s*.32} ${base-s*.55}Z`,fill:c},'body');
+    add('ellipse',{cx:x+s*.38,cy:base-s*.92,rx:s*.08,ry:s*.05,fill:c},'body'); line(`M${x+s*.35} ${base-s*.96} l-${s*.06} -${s*.14} M${x+s*.38} ${base-s*.96} l${s*.04} -${s*.15}`, folk?folk.line:'#5b3a29', 2);
+    for (const lx of [-.2,-.1,.12,.2]) line(`M${x+lx*s} ${base-s*.45} L${x+lx*s} ${base}`, folk?folk.line:'#6b4423', s*.035);
+    for (let i=0;i<5;i++) add('circle',{cx:x+rnd(-s*.2,s*.15),cy:base-s*.57+rnd(-s*.05,s*.05),r:s*.02,fill:'#fff3dc'},'solid'); }
+  function cow(x,base,s){ const c=fc(lin(['#f4efe6','#cfc6b5'])); add('ellipse',{cx:x,cy:base-s*.5,rx:s*.36,ry:s*.18,fill:c},'body'); add('ellipse',{cx:x+s*.4,cy:base-s*.6,rx:s*.12,ry:s*.08,fill:c},'body');
+    line(`M${x+s*.36} ${base-s*.68} q-${s*.04} -${s*.1} ${s*.02} -${s*.12} M${x+s*.46} ${base-s*.68} q${s*.04} -${s*.1} -${s*.02} -${s*.12}`, folk?folk.line:'#8a6a3d', 3);
+    for (const lx of [-.25,-.12,.12,.25]) line(`M${x+lx*s} ${base-s*.38} L${x+lx*s} ${base}`, folk?folk.line:'#a89a85', s*.045); add('path',{d:`M${x-s*.1} ${base-s*.68} H${x+s*.15} V${base-s*.5} H${x-s*.1}Z`,fill:fc('#d7263d')}); }
+  function fish(x,y,s){ add('path',{d:`M${x-s} ${y} Q${x} ${y-s*.6} ${x+s*.6} ${y} Q${x} ${y+s*.6} ${x-s} ${y}Z M${x+s*.6} ${y} L${x+s} ${y-s*.35} L${x+s} ${y+s*.35}Z`,fill:fc('#f28c1e')},'body'); add('circle',{cx:x-s*.6,cy:y-s*.08,r:s*.07,fill:'#1b1b1b'},'solid'); }
+  // ---------- composition ----------
+  const S=new Set(U.subj); const used=[];
+  const focalX = w*.5;
+  if (S.has('ghats')){ ghats(); used.push('ghats'); }
+  if (S.has('village')){ huts(4); used.push('village'); }
+  if (S.has('fort')){ fort(w*(S.size>1?.68:.5), hy+h*.02, h*.42); used.push('fort'); }
+  if (S.has('temple') && !S.has('ghats')){ temple(S.has('buddha')||S.has('people') ? w*.22 : focalX, hy+h*.08, h*.62); used.push('temple'); }
+  if (S.has('palm')){ palm(w*.08, hy+h*.12, h*.5, w*.06); palm(w*.92, hy+h*.14, h*.46, -w*.07); palm(w*.82, hy+h*.08, h*.38, -w*.03); used.push('palms'); }
+  if (S.has('camel')){ for (let i=0;i<3;i++) camel(w*(.25+i*.18), hy+h*.12+i*h*.02, h*.2, 1); used.push('camels'); }
+  if (U.water && (S.has('boat') || S.has('ghats'))){ const n=S.has('ghats')?4:3; for (let i=0;i<n;i++) boat(rnd(w*.12,w*.88), rnd(hy+h*.08,h*.82), rnd(h*.06,h*.1), S.has('boat') && /kerala|houseboat|backwater/.test((text||'').toLowerCase()) && i===0); used.push('boats'); }
+  if (S.has('tree')){ const kind=/bodhi|peepal/.test((text||'').toLowerCase())||S.has('buddha')?'bodhi':/banyan/.test((text||'').toLowerCase())?'banyan':'round'; tree(S.has('buddha')? focalX : S.has('people')? w*.62 : (S.has('peacock')||S.has('elephant')||S.has('deer')||S.has('cow')||S.has('temple')) ? w*.2 : focalX, hy+h*.2, h*.85, kind); used.push('tree'); }
+  if (S.has('mandala')){ mandala(focalX, S.has('buddha')? h*.32 : h*.46, h*.3); used.push('mandala'); }
+  if (S.has('buddha')){ buddha(focalX, h*.9, h*(S.has('tree')?.5:.56)); used.push('Buddha'); }
+  if (S.has('elephant')){ elephant(S.has('buddha')?w*.18:w*.42, h*.9, h*.42, 1); used.push('elephant'); }
+  if (S.has('peacock')){ peacock(S.has('buddha')||S.has('elephant')? w*.8 : focalX, h*.9, h*(S.size>1?.3:.42)); used.push('peacock'); }
+  if (S.has('deer')){ deer(w*.72, h*.88, h*.22); deer(w*.84, h*.9, h*.18); used.push('deer'); }
+  if (S.has('cow')){ cow(w*.7, h*.9, h*.24); used.push('cow'); }
+  if (S.has('people')){ const n=/family|children|people|dancer/.test((text||'').toLowerCase())?4:2; for (let i=0;i<n;i++) person(w*(.3+i*.12), h*.92, h*(i%2?.3:.38)); used.push('people'); }
+  if (S.has('kite')){ kites(); used.push('kites'); }
+  if (S.has('lotus') || (U.water && !S.has('ghats') && !S.has('boat'))){ if (U.water) for (let i=0;i<4;i++){ const busy = S.has('buddha')||S.has('peacock')||S.has('elephant'); const lx = busy ? (i%2 ? rnd(w*.06,w*.28) : rnd(w*.72,w*.94)) : rnd(w*.08,w*.92); lotus(lx, rnd(h*.8,h*.95), h*rnd(.06,.09)); } else lotus(w*.15,h*.95,h*.08,false); used.push('lotus'); }
+  if (S.has('fish')){ for (let i=0;i<5;i++) fish(rnd(w*.1,w*.9), rnd(hy+h*.1,h*.95), h*.035); used.push('fish'); }
+  if (S.has('bird') || R()<.6) { birds(S.has('bird')?9:4); if (S.has('bird')) used.push('birds'); }
+  if (S.has('diya') || (S.has('ghats') && U.time!=='day')){ diyas(h*.97); if (U.water && !folk) for (let i=0;i<14;i++){ const x=rnd(0,w), y=rnd(hy+h*.05,h*.9); add('circle',{cx:x,cy:y,r:h*.025,fill:rad('#ffd27a','#ffd27a',.7,0)},'bg'); add('circle',{cx:x,cy:y,r:h*.005,fill:'#fff6c4'},'solid'); } used.push('diyas'); }
+  if (!used.length){ // nothing recognised: a calm, beautiful landscape with a tree, flowers and birds
+    tree(w*.7, hy+h*.2, h*.7, 'round'); if (U.water) for (let i=0;i<3;i++) lotus(rnd(w*.1,w*.6), rnd(h*.82,h*.95), h*.07); }
+  if (!U.water && !U.desert && !S.has('kite')) for (let i=0;i<60;i++){ const x=rnd(0,w), y=rnd(h*.88,h); const c=fc(pick(['#f7c531','#ec4e9c','#fff8e7','#f28c1e','#d7263d'])); add('circle',{cx:x,cy:y,r:rnd(3,7),fill:c},'solid'); }
+  if (U.time==='monsoon' && !folk) for (let i=0;i<160;i++){ const x=rnd(0,w), y=rnd(0,h); line(`M${x} ${y} l-6 18`,'#dfe8f2',1.2,.5); }
+  if (U.time==='snow' && !folk) for (let i=0;i<120;i++) add('circle',{cx:rnd(0,w),cy:rnd(0,h),r:rnd(1.2,3.2),fill:'#ffffff',opacity:rnd(.6,1)},'bg');
+  if (style==='oil') for (let i=0;i<260;i++){ const x=rnd(0,w), y=rnd(0,h); add('ellipse',{cx:x,cy:y,rx:rnd(4,12),ry:rnd(1.5,3),fill:y<hy?pick(pal.sky):pick([...pal.land,...pal.water]),opacity:rnd(.12,.3),transform:`rotate(${rnd(-30,30).toFixed(0)} ${x.toFixed(0)} ${y.toFixed(0)})`},'bg'); }
+  // ---------- borders ----------
+  if (folk && folk.border==='madhubani'){ const b=Math.min(w,h)*.045; add('path',{d:`M0 0H${w}V${h}H0Z M${b} ${b}V${h-b}H${w-b}V${b}Z`,fill:'#d7263d','fill-rule':'evenodd'});
+    for (let x=b;x<w-b;x+=b) { add('path',{d:`M${x} ${b*.15}L${x+b/2} ${b*.85}L${x+b} ${b*.15}Z`,fill:'#f7c531'},'solid'); add('path',{d:`M${x} ${h-b*.15}L${x+b/2} ${h-b*.85}L${x+b} ${h-b*.15}Z`,fill:'#f7c531'},'solid'); }
+    for (let y=b;y<h-b;y+=b) { add('path',{d:`M${b*.15} ${y}L${b*.85} ${y+b/2}L${b*.15} ${y+b}Z`,fill:'#3ba55c'},'solid'); add('path',{d:`M${w-b*.15} ${y}L${w-b*.85} ${y+b/2}L${w-b*.15} ${y+b}Z`,fill:'#3ba55c'},'solid'); } }
+  if (folk && folk.border==='miniature'){ const b=Math.min(w,h)*.06; add('path',{d:`M0 0H${w}V${h}H0Z M${b} ${h-b}V${b*2.4} Q${w/2} ${-b*.6} ${w-b} ${b*2.4}V${h-b}Z`,fill:'#9b1d20','fill-rule':'evenodd'});
+    add('path',{d:`M${b} ${h-b}V${b*2.4} Q${w/2} ${-b*.6} ${w-b} ${b*2.4}V${h-b}Z`,fill:'none',stroke:'#e8b84a','stroke-width':b*.18});
+    for (let x=b*.5;x<w;x+=b) { add('circle',{cx:x,cy:h-b*.5,r:b*.18,fill:'#e8b84a'},'solid'); } }
+  if (folk && folk.warli) add('path',{d:`M0 0H${w}V${h}H0Z M14 14V${h-14}H${w-14}V14Z`,fill:'#7a3a20','fill-rule':'evenodd'},'bg');
+  return { svg:`<defs>${defs.join('')}</defs>\n${out.join('\n')}`, understood:U, used };
+}
+
+// =====================================================================================
 // modes
 // =====================================================================================
 function setMode(m){
@@ -921,11 +1175,11 @@ document.querySelector('.tabs').onclick=(e)=>{ const b=e.target.closest('.tab');
 window.addEventListener('resize', ()=>{ clearTimeout(fit._t); fit._t=setTimeout(fit,120); });
 
 // start in a real working state: a finished painting, a finished rangoli, a coloured design, a lesson ready
-W = 0; fit(); demoPaint(); showExample(); surprise(true); undo.length=0;
+W = 0; fit(); demoPaint(); surprise(true); undo.length=0;
 generate(); magic(true); history=[];
-renderLearn();
+renderLearn(); quickPaint();
 const HAS_AI = !!(window.claude && window.claude.use);
-if (!HAS_AI && window.RSNative && window.RSNative.isNative) { $('#tab-create').hidden = true; }
+
 let startMode = $('#tab-create').hidden ? 'paint' : 'create'; try { startMode = localStorage.getItem('rangoli-mode') || startMode; } catch(e){}
 if (startMode==='create' && $('#tab-create').hidden) startMode='paint';
 setMode(startMode);
