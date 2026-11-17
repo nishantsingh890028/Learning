@@ -3,6 +3,7 @@
 name: Build APK
 on:
   push:
+    paths-ignore: ['rangoli-studio/**', '.github/workflows/build-rangoli.yml']
   workflow_dispatch:
 permissions:
   contents: write

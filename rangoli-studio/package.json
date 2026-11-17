@@ -1,0 +1,20 @@
+{
+  "name": "rangoli-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rangoli & Mandala Studio: magic painting, mirror drawing, colouring and step-by-step drawing lessons.",
+  "scripts": {
+    "build:native": "esbuild src/native.js --bundle --format=iife --minify --outfile=www/native.js",
+    "build": "npm run build:native && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
+    "esbuild": "^0.25.0"
+  }
+}
